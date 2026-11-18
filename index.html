@@ -1320,7 +1320,25 @@ async function initIdentity(){
     msAccount=(result&&result.account)||msalApp.getAllAccounts()[0]||null;
     if(msAccount) msalApp.setActiveAccount(msAccount);
     msalReady=true; b.disabled=false; b.textContent='Mit Microsoft anmelden'; updateAuthUI();
-    if(msAccount) await syncFromCloud(true); else setCloud('','Bereit zur Microsoft-Anmeldung');
+    if(msAccount){
+      // Silent Auto-Login: erst Token lautlos aus Cache/SSO erneuern, dann OneDrive synchronisieren.
+      try{
+        await msalApp.acquireTokenSilent({account:msAccount,scopes:GRAPH_SCOPES,forceRefresh:false});
+        setCloud('ok','Microsoft-Konto verbunden · OneDrive wird synchronisiert …');
+        await syncFromCloud(true);
+      }catch(e){
+        // Bei erforderlicher Benutzerinteraktion lokal weiterarbeiten und erst dann den Login-Button zeigen.
+        const interactionRequired = e && (e.errorCode==='interaction_required' || e.errorCode==='login_required' || e.errorCode==='consent_required' || e.name==='InteractionRequiredAuthError');
+        if(interactionRequired){
+          msAccount=null;
+          updateAuthUI();
+          b.hidden=false; b.disabled=false; b.textContent='Microsoft-Anmeldung erforderlich';
+          setCloud('busy','Microsoft-Sitzung abgelaufen · Anmeldung erforderlich');
+        }else{
+          showAuthError(e,'Automatische Anmeldung');
+        }
+      }
+    }else setCloud('','Bereit zur Microsoft-Anmeldung');
   }catch(e){b.disabled=false;b.textContent='Anmeldung erneut versuchen';showAuthError(e,'MSAL-Initialisierung');}
 }
 function updateAuthUI(){const on=!!msAccount;$('#btnSignIn').hidden=on;$('#btnSync').hidden=!on;$('#btnSignOut').hidden=!on;if(on)setCloud('ok','Angemeldet: '+(msAccount.name||msAccount.username));}
