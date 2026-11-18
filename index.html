@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privater Urlaubs- und Freizeitplaner</title>
-<meta name="theme-color" content="#1267a5"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1267a5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
 <script src="config.js"></script>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/3.28.1/js/msal-browser.min.js"></script>
 <style>
 :root{
   --ink:#1a1a1a;--muted:#6b6b6b;--line:#d9d9d9;--bg:#f4f4f4;--accent:#bb0a30;
@@ -346,7 +348,7 @@ legend{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5
     <button id="btnSettings">Persönliche Einstellungen</button>
     <button id="btnConfig">Ferien &amp; Sondertage</button>
     <button id="btnPrint" class="ghost">Drucken / PDF</button>
-    <button id="btnSignIn" class="primary">Mit Microsoft anmelden</button>
+    <button id="btnSignIn" class="primary" disabled>Microsoft-Anmeldung wird vorbereitet …</button>
     <button id="btnSync" hidden>Jetzt synchronisieren</button>
     <button id="btnSignOut" class="ghost" hidden>Abmelden</button>
   </div>
@@ -354,6 +356,7 @@ legend{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5
 </header>
 
 <div class="status" id="status"></div>
+<div id="authError" role="alert" style="display:none;margin:0 18px 12px;padding:12px;border:1px solid #c42b1c;border-radius:8px;background:#fff4f4;color:#7a130d;white-space:pre-wrap"></div>
 
 <main>
   <div id="demoBox"></div>
@@ -1289,43 +1292,60 @@ function showMsg(title,html){ $('#mTitle').textContent=title; $('#mBody').innerH
 function clearSel(){ document.querySelectorAll('.day.sel').forEach(c=>c.classList.remove('sel')); }
 
 
-/* ===================== Microsoft-Konto / OneDrive-Sync ===================== */
-let msalApp=null, msAccount=null, cloudETag=null, cloudTimer=null, cloudState='', cloudText='Nicht mit OneDrive verbunden';
+/* ===================== Microsoft-Konto / OneDrive-Sync v3 ===================== */
+let msalApp=null, msAccount=null, msalReady=false, cloudETag=null, cloudTimer=null;
+let cloudState='', cloudText='Microsoft-Anmeldung wird vorbereitet';
 const GRAPH_SCOPES=['Files.ReadWrite.AppFolder','User.Read'];
 const CLOUD_FILE='urlaubsplaner-private.json';
-function setCloud(state,text){ cloudState=state||''; cloudText=text; try{renderStatus();}catch(e){} }
-function initIdentity(){
-  if(!window.PRIVATE_PWA_CONFIG || !PRIVATE_PWA_CONFIG.clientId || PRIVATE_PWA_CONFIG.clientId.includes('HIER_')){ setCloud('err','Einrichtung erforderlich: Client-ID in config.js eintragen'); return; }
-  msalApp=new msal.PublicClientApplication({auth:{clientId:PRIVATE_PWA_CONFIG.clientId,authority:'https://login.microsoftonline.com/consumers',redirectUri:location.origin+location.pathname},cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false}});
-  msalApp.handleRedirectPromise().then(r=>{ msAccount=(r&&r.account)||msalApp.getAllAccounts()[0]||null; updateAuthUI(); if(msAccount) syncFromCloud(true); }).catch(e=>setCloud('err','Anmeldung fehlgeschlagen: '+e.message));
+const REDIRECT_URI='https://rico-strauss.github.io/urlaubsplaner/';
+function setCloud(state,text){cloudState=state||'';cloudText=text;try{renderStatus();}catch(e){}}
+function showAuthError(e,phase='Anmeldung'){
+  const code=e&&(e.errorCode||e.code)||'unbekannter_fehler';
+  const msg=e&&(e.errorMessage||e.message)||String(e||'Unbekannter Fehler');
+  const box=document.querySelector('#authError');
+  box.textContent=phase+' fehlgeschlagen\nFehlercode: '+code+'\nDetails: '+msg;
+  box.style.display='block'; setCloud('err',phase+' fehlgeschlagen: '+code); console.error(phase,e);
 }
-function updateAuthUI(){ const on=!!msAccount; $('#btnSignIn').hidden=on; $('#btnSync').hidden=!on; $('#btnSignOut').hidden=!on; if(on)setCloud('ok','Angemeldet: '+(msAccount.name||msAccount.username)); }
-async function signIn(){ try{ const r=await msalApp.loginPopup({scopes:GRAPH_SCOPES,prompt:'select_account'}); msAccount=r.account; updateAuthUI(); await syncFromCloud(true); }catch(e){ if(e.errorCode!=='user_cancelled') setCloud('err','Anmeldung fehlgeschlagen'); } }
-async function token(){ try{return (await msalApp.acquireTokenSilent({account:msAccount,scopes:GRAPH_SCOPES})).accessToken;}catch(e){return (await msalApp.acquireTokenPopup({account:msAccount,scopes:GRAPH_SCOPES})).accessToken;} }
-async function graph(path,opt={}){ const t=await token(); const h=new Headers(opt.headers||{}); h.set('Authorization','Bearer '+t); const r=await fetch('https://graph.microsoft.com/v1.0'+path,{...opt,headers:h}); if(!r.ok){const x=await r.text();throw new Error(r.status+' '+x);} return r; }
-function cloudPayload(){ return {schema:'urlaubsplaner-private-v2',updatedAt:new Date().toISOString(),state:S}; }
-async function syncFromCloud(initial=false){
- if(!msAccount)return; setCloud('busy','OneDrive wird synchronisiert ...');
+function clearAuthError(){const b=document.querySelector('#authError');if(b){b.style.display='none';b.textContent='';}}
+function isMobile(){return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||matchMedia('(max-width: 700px)').matches;}
+async function initIdentity(){
+  const b=$('#btnSignIn');
+  try{
+    if(!window.msal) throw new Error('MSAL-Bibliothek konnte nicht geladen werden. Prüfe Internetzugang, Browser-Schutz und Content-Blocker.');
+    const cfg=window.PRIVATE_PWA_CONFIG||{};
+    if(!cfg.clientId||cfg.clientId.includes('HIER_')) throw new Error('Client-ID fehlt in config.js.');
+    msalApp=new msal.PublicClientApplication({auth:{clientId:cfg.clientId,authority:'https://login.microsoftonline.com/consumers',redirectUri:REDIRECT_URI,navigateToLoginRequestUrl:false},cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false},system:{allowNativeBroker:false}});
+    if(typeof msalApp.initialize==='function') await msalApp.initialize();
+    const result=await msalApp.handleRedirectPromise();
+    msAccount=(result&&result.account)||msalApp.getAllAccounts()[0]||null;
+    if(msAccount) msalApp.setActiveAccount(msAccount);
+    msalReady=true; b.disabled=false; b.textContent='Mit Microsoft anmelden'; updateAuthUI();
+    if(msAccount) await syncFromCloud(true); else setCloud('','Bereit zur Microsoft-Anmeldung');
+  }catch(e){b.disabled=false;b.textContent='Anmeldung erneut versuchen';showAuthError(e,'MSAL-Initialisierung');}
+}
+function updateAuthUI(){const on=!!msAccount;$('#btnSignIn').hidden=on;$('#btnSync').hidden=!on;$('#btnSignOut').hidden=!on;if(on)setCloud('ok','Angemeldet: '+(msAccount.name||msAccount.username));}
+async function signIn(){
+ clearAuthError();
  try{
-   const r=await graph('/me/drive/special/approot:/'+CLOUD_FILE+':/content');
-   cloudETag=r.headers.get('etag'); const d=await r.json();
-   const localAt=localStorage.getItem(STORE+'.updatedAt')||'';
-   if(d&&d.state&&(!localAt||d.updatedAt>localAt||initial)){ S={config:normConfig(d.state.config),personal:normPersonal(d.state.personal),plan:d.state.plan||{},demo:!!d.state.demo}; localStorage.setItem(STORE,JSON.stringify(S)); localStorage.setItem(STORE+'.updatedAt',d.updatedAt||''); renderAll(); }
-   else await saveToCloud();
-   setCloud('ok','OneDrive aktuell · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}));
- }catch(e){ if(String(e.message).startsWith('404')) await saveToCloud(); else {setCloud('err','Sync-Fehler · lokal weiter nutzbar'); console.warn(e);} }
+   if(!msalReady){await initIdentity();if(!msalReady)return;}
+   const req={scopes:GRAPH_SCOPES,redirectUri:REDIRECT_URI,prompt:'select_account'};
+   if(isMobile()){sessionStorage.setItem('urlaub.auth.return','1');await msalApp.loginRedirect(req);return;}
+   try{const r=await msalApp.loginPopup(req);msAccount=r.account;msalApp.setActiveAccount(msAccount);updateAuthUI();await syncFromCloud(true);}
+   catch(e){
+     const popupProblem=['popup_window_error','empty_window_error','user_cancelled','monitor_window_timeout'].includes(e.errorCode);
+     if(popupProblem&&e.errorCode!=='user_cancelled'){sessionStorage.setItem('urlaub.auth.return','1');await msalApp.loginRedirect(req);return;}
+     throw e;
+   }
+ }catch(e){showAuthError(e,'Anmeldung');}
 }
-async function saveToCloud(){
- if(!msAccount)return; setCloud('busy','Änderungen werden gespeichert ...');
- try{ const body=JSON.stringify(cloudPayload()); const headers={'Content-Type':'application/json'}; if(cloudETag) headers['If-Match']=cloudETag; let r;
-   try{r=await graph('/me/drive/special/approot:/'+CLOUD_FILE+':/content',{method:'PUT',headers,body});}
-   catch(e){ if(String(e.message).startsWith('412')){ await syncFromCloud(true); return; } throw e; }
-   const meta=await r.json(); cloudETag=meta.eTag||null; localStorage.setItem(STORE+'.updatedAt',new Date().toISOString()); setCloud('ok','In OneDrive gespeichert');
- }catch(e){setCloud('err','Cloud-Speicherung fehlgeschlagen · lokal gesichert');console.warn(e);}
-}
-function queueCloudSave(){ localStorage.setItem(STORE+'.updatedAt',new Date().toISOString()); clearTimeout(cloudTimer); if(msAccount) cloudTimer=setTimeout(saveToCloud,900); }
-async function signOut(){ if(!msalApp||!msAccount)return; await msalApp.logoutPopup({account:msAccount,postLogoutRedirectUri:location.origin+location.pathname}); msAccount=null; updateAuthUI(); setCloud('','Nicht mit OneDrive verbunden'); }
-if('serviceWorker' in navigator && location.protocol!=='file:') addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.warn));
+async function token(){try{return(await msalApp.acquireTokenSilent({account:msAccount,scopes:GRAPH_SCOPES})).accessToken;}catch(e){if(isMobile()){await msalApp.acquireTokenRedirect({account:msAccount,scopes:GRAPH_SCOPES,redirectUri:REDIRECT_URI});return null;}return(await msalApp.acquireTokenPopup({account:msAccount,scopes:GRAPH_SCOPES})).accessToken;}}
+async function graph(path,opt={}){const t=await token();if(!t)throw new Error('Token-Weiterleitung gestartet');const h=new Headers(opt.headers||{});h.set('Authorization','Bearer '+t);const r=await fetch('https://graph.microsoft.com/v1.0'+path,{...opt,headers:h});if(!r.ok){const x=await r.text();const e=new Error('Graph '+r.status+': '+x);e.code='graph_'+r.status;throw e;}return r;}
+function cloudPayload(){return{schema:'urlaubsplaner-private-v3',updatedAt:new Date().toISOString(),state:S};}
+async function syncFromCloud(initial=false){if(!msAccount)return;setCloud('busy','OneDrive wird synchronisiert …');try{const r=await graph('/me/drive/special/approot:/'+CLOUD_FILE+':/content');cloudETag=r.headers.get('etag');const d=await r.json();const localAt=localStorage.getItem(STORE+'.updatedAt')||'';if(d&&d.state&&(!localAt||d.updatedAt>localAt||initial)){S={config:normConfig(d.state.config),personal:normPersonal(d.state.personal),plan:d.state.plan||{},demo:!!d.state.demo};localStorage.setItem(STORE,JSON.stringify(S));localStorage.setItem(STORE+'.updatedAt',d.updatedAt||'');renderAll();}else await saveToCloud();setCloud('ok','OneDrive aktuell · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}));}catch(e){if((e.message||'').includes('Graph 404'))await saveToCloud();else showAuthError(e,'Synchronisierung');}}
+async function saveToCloud(){if(!msAccount)return;setCloud('busy','Änderungen werden gespeichert …');try{const headers={'Content-Type':'application/json'};if(cloudETag)headers['If-Match']=cloudETag;const r=await graph('/me/drive/special/approot:/'+CLOUD_FILE+':/content',{method:'PUT',headers,body:JSON.stringify(cloudPayload())});const meta=await r.json();cloudETag=meta.eTag||null;localStorage.setItem(STORE+'.updatedAt',new Date().toISOString());setCloud('ok','In OneDrive gespeichert');}catch(e){if((e.message||'').includes('Graph 412')){await syncFromCloud(true);return;}showAuthError(e,'Cloud-Speicherung');}}
+function queueCloudSave(){localStorage.setItem(STORE+'.updatedAt',new Date().toISOString());clearTimeout(cloudTimer);if(msAccount)cloudTimer=setTimeout(saveToCloud,900);}
+async function signOut(){try{if(msalApp&&msAccount)await msalApp.logoutRedirect({account:msAccount,postLogoutRedirectUri:REDIRECT_URI});}catch(e){showAuthError(e,'Abmeldung');}}
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Service Worker',e)));
 
 /* ===================== Events ===================== */
 let selA=null, selB=null, dragging=false;
