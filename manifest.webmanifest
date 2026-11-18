@@ -1,0 +1,10 @@
+{
+  "name": "Privater Urlaubs- und Freizeitplaner",
+  "short_name": "Urlaubsplaner",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f4f4",
+  "theme_color": "#1267a5",
+  "lang": "de-DE",
+  "description": "Privater Urlaubsplaner mit Microsoft-Konto und OneDrive-Synchronisierung"
+}

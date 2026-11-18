@@ -1,0 +1,1409 @@
+﻿<!DOCTYPE html>
+<html lang="de" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head><meta name="ms-sp-authoring-source" content="agent">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privater Urlaubs- und Freizeitplaner</title>
+<meta name="theme-color" content="#1267a5"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="manifest" href="manifest.webmanifest">
+<script src="config.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<style>
+:root{
+  --ink:#1a1a1a;--muted:#6b6b6b;--line:#d9d9d9;--bg:#f4f4f4;--accent:#bb0a30;
+  --we:#e4e4e4;--hol:#c9dcf3;--holhalf:#e3edf9;--holtxt:#1f4e8c;--ferien:#f2c94c;
+  --T:#2e9e5b;--TV:#17603a;--FTZ:#7b4fb3;--FT:#139c9c;--AU:#c62828;--FM:#3949ab;--GT:#00838f;--blk:#d9f2df;--sel:#ffe9a8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 24px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}
+.logo-bar{width:4px;height:38px;background:var(--accent)}
+h1{font-size:20px;margin:0;font-weight:600;display:flex;align-items:center;gap:6px}
+h1 button{padding:0 8px;border-color:var(--line);font-size:14px;line-height:22px}
+.sub{color:var(--muted);font-size:12px;margin-top:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;border:1px solid var(--ink);background:#fff;color:var(--ink);padding:7px 14px;cursor:pointer;border-radius:2px}
+button:hover{background:#efefef}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#333}
+button.ghost{border-color:var(--line)}
+button.danger{border-color:var(--accent);color:var(--accent)}
+button.small{padding:3px 9px;font-size:12px}
+.status{padding:8px 24px;font-size:12px;color:var(--muted);display:flex;gap:6px 18px;flex-wrap:wrap}
+.status b{color:var(--ink);font-weight:600}
+.status .warn{color:var(--accent);font-weight:600}
+main{padding:0 24px 32px;display:flex;flex-direction:column;gap:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--c,var(--ink));padding:12px 14px}
+.card h3{margin:0 0 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.card .big{font-size:26px;font-weight:600;line-height:1.1}
+.card .big small{font-size:13px;font-weight:400;color:var(--muted)}
+.bar{height:6px;background:#ececec;margin:8px 0 6px}
+.bar>i{display:block;height:100%;background:var(--c,var(--ink))}
+.card .meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;margin-top:2px}
+.neg{color:var(--accent)!important;font-weight:600}
+.card ul{margin:4px 0 0;padding:0;list-style:none;font-size:12px}
+.card li{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted #e3e3e3}
+.card li b{font-weight:600}
+.panel{background:#fff;border:1px solid var(--line);padding:14px 16px}
+.panel h2{font-size:15px;margin:0 0 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.panel h2 .tools{font-size:12px;font-weight:400;color:var(--muted);display:flex;gap:6px;align-items:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:1150px){.two{grid-template-columns:1fr}}
+.hint{color:var(--muted);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin:0 0 10px;align-items:center}
+.legend .sw{display:inline-block;width:14px;height:14px;vertical-align:-3px;margin-right:5px;border:1px solid rgba(0,0,0,.08)}
+.legend .tip{margin-left:auto;font-style:italic}
+.calwrap{background:#fff;border:1px solid var(--line);padding:12px;overflow-x:auto}
+.calendar{display:grid;grid-template-columns:repeat(var(--cols),minmax(96px,1fr));gap:5px;user-select:none;min-width:1150px}
+.month .mh{font-weight:600;font-size:13px;padding:3px 6px;border-bottom:2px solid var(--ink);margin-bottom:2px;display:flex;justify-content:space-between}
+.month .mh small{font-weight:400;color:var(--muted)}
+.month.preview .day{opacity:.55;cursor:default}
+.day{position:relative;min-height:34px;display:grid;grid-template-columns:18px 25px minmax(0,1fr) auto 38px;grid-template-rows:17px 15px;column-gap:4px;align-items:center;padding:1px 6px 1px 8px;font-size:11px;border-bottom:1px solid #f0f0f0;cursor:pointer;overflow:hidden}
+.day:hover{box-shadow:inset 0 0 0 1px #999}
+.day.empty{cursor:default;background:transparent;box-shadow:none}
+.day.mo{border-top:1px solid #b5b5b5}
+.day .kw{grid-column:5;grid-row:1;width:38px;font-variant-numeric:tabular-nums;font-weight:700;color:#555;text-align:right;justify-self:end}.day .datewd{display:contents}.day .dn{grid-column:1;grid-row:1;width:18px;font-variant-numeric:tabular-nums;font-weight:600;text-align:left}.day .wd{grid-column:2;grid-row:1;width:25px;color:var(--muted);text-align:left}.month .day,.month .day *{box-sizing:border-box}
+.day .tx{grid-column:1/5;grid-row:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a8a8a;font-size:10px;text-align:left}.day .badge{grid-column:4;grid-row:1;justify-self:end}
+.day.we{background:var(--we)}
+.day.hol{background:var(--hol)}
+.day.half{background:var(--holhalf)}
+.day.blk{background:var(--blk)}
+.day.blk.we{background:color-mix(in srgb,var(--blk) 80%,#9a9a9a)}
+.day.hol .tx,.day.half .tx{color:var(--holtxt);font-weight:600}
+.day.fer{background:linear-gradient(90deg,rgba(242,201,76,.24),rgba(242,201,76,.10))}.day.fer::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ferien)}
+.day.wf::after{content:"";position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--werks)}
+.day.sel{background:var(--sel)!important;box-shadow:inset 0 0 0 1px var(--ink)}
+.badge{font-size:10px;font-weight:700;color:#fff;padding:1px 4px;border-radius:2px;line-height:13px}
+.badge.T{background:var(--T)}.badge.TV{background:var(--TV)}.badge.FTZ{background:var(--FTZ)}.badge.FT{background:var(--FT)}.badge.AU{background:var(--AU)}.badge.FM{background:var(--FM)}.badge.GT{background:var(--GT)}
+.month .mf{font-size:10px;color:var(--muted);padding:4px 6px;border-top:1px solid var(--line);margin-top:2px;min-height:28px;line-height:1.45}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--ink);padding:6px 6px}
+.tbl td{border-bottom:1px solid #ececec;padding:6px 6px;vertical-align:middle}
+.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.gaprow td{background:#fafafa;color:var(--muted);font-size:12px;padding:4px 6px}
+.gaprow.warnrow td{color:var(--accent);font-weight:600;background:#fdf1f3}
+.sug{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:9px 0;border-bottom:1px solid #ececec;align-items:center}
+.sug .t{font-weight:600}
+.sug .d{font-size:12px;color:var(--muted)}
+.sug .note{font-size:11px;color:#a0620e}
+dialog{border:0;padding:0;width:min(680px,94vw);box-shadow:0 18px 50px rgba(0,0,0,.3);border-radius:2px}
+dialog.wide{width:min(940px,96vw)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.dh{padding:14px 18px;border-bottom:1px solid var(--line);font-weight:600;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.db{padding:16px 18px;max-height:70vh;overflow:auto}
+.df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.df .left{margin-right:auto;display:flex;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px}
+.full{grid-column:1/-1}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px}
+label.chk{flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:13px}
+input,select{font:inherit;padding:6px 8px;border:1px solid #b9b9b9;border-radius:2px;color:var(--ink);background:#fff;min-width:0}
+.tbl input,.tbl select{width:100%;padding:4px 6px}
+fieldset{border:1px solid var(--line);padding:10px 12px 12px;margin:0 0 14px}
+legend{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:0 6px}
+.wdrow{display:flex;gap:10px;flex-wrap:wrap}
+.colors{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 14px}
+.colors label{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:12px}
+.colors input[type=color]{width:38px;height:28px;padding:1px;border:1px solid #b9b9b9;cursor:pointer;flex:none}
+.preview-box{background:#f6f6f6;border-left:3px solid var(--ink);padding:10px 12px;font-size:13px;margin-top:14px;line-height:1.6}
+.msglist{margin:0;padding-left:18px;line-height:1.6}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:100;max-width:80vw}
+#toast.show{opacity:1}
+#toast.err{background:var(--accent)}
+.demo{background:#fff6d6;border:1px solid #f0d77a;padding:8px 12px;font-size:13px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  body{background:#fff;font-size:11px}
+  .actions,.status,.demo,#sugPanel,dialog,#toast,h1 button,.legend .tip,.panel h2 .tools{display:none!important}
+  .topbar{position:static;padding:0 0 6px;border:0}
+  main{padding:0;gap:8px}
+  .calwrap{border:0;padding:0;overflow:visible}
+  .calendar{min-width:0;gap:3px}
+  .day{min-height:28px;height:auto;font-size:9px;grid-template-rows:14px 12px;padding-top:1px;padding-bottom:1px}
+  .card{padding:6px 8px}.card .big{font-size:16px}
+  .two{grid-template-columns:1fr}
+  .day,.badge,.bar>i,.day::before,.day::after{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .calwrap{break-after:page}
+}
+
+/* Geprüft: Monats-, Jahres- und Druckansicht */
+#calendar .month .day{grid-template-columns:18px 25px minmax(0,1fr) auto 38px}
+@media screen{#calendar .month .day .dn,#calendar .month .day .wd{text-align:left}#calendar .month .day .kw{text-align:right;justify-self:end}}
+@media print{#calendar .month .day{grid-template-columns:18px 25px minmax(0,1fr) auto 36px}#calendar .month .day .dn,#calendar .month .day .wd{text-align:left}#calendar .month .day .kw{width:36px;text-align:right;justify-self:end}}
+/* Einheitliche Kalenderausrichtung in allen Ansichten */
+#calendar .day{grid-template-columns:18px 25px minmax(0,1fr) auto 38px}
+#calendar .day .dn{grid-column:1;text-align:left}
+#calendar .day .wd{grid-column:2;text-align:left}
+#calendar .day .kw{grid-column:5;text-align:right;justify-self:end}
+
+/* Kontingenttitel einzeilig */
+#dashboard .card h3{white-space:normal;font-size:14px}
+#dashboard .card h3.tzug-title{white-space:nowrap;font-size:14px;letter-spacing:0;line-height:1.2;width:100%;overflow:hidden}
+
+@media print{#dashboard .card h3.tzug-title{white-space:nowrap}}
+
+/* Einheitliche Kontingentdarstellung */
+.quota-values{display:grid;grid-template-columns:max-content 1fr;column-gap:8px;row-gap:3px;margin-top:6px;font-size:12px;line-height:1.35}
+.quota-values .q-label{font-weight:700;color:var(--muted)}
+.quota-values .q-value{text-align:left;font-variant-numeric:tabular-nums}
+@media print{
+  .quota-values{grid-template-columns:58px 1fr;column-gap:5px;row-gap:2px;font-size:9px;line-height:1.2}
+  .quota-values .q-label{white-space:nowrap}.quota-values .q-value{white-space:normal;overflow-wrap:anywhere}
+}
+
+#dashboard .annual-fm{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#dashboard .annual-fm span,#dashboard .annual-fm b{white-space:nowrap}
+@media print{#dashboard .annual-fm{display:flex!important;justify-content:space-between}#dashboard .annual-fm span,#dashboard .annual-fm b{white-space:nowrap;font-size:9px}}
+
+/* Validierte Ausrichtung TV / T-ZUG und Jahres-FM */
+#dashboard .quota-values{grid-template-columns:70px minmax(0,1fr);align-items:baseline}
+#dashboard .quota-values .q-label{text-align:left}
+#dashboard .quota-values .q-value{text-align:left;white-space:nowrap}
+#dashboard .annual-fm{min-width:0}
+#dashboard .annual-fm b{margin-left:auto;text-align:right}
+@media print{
+  #dashboard .quota-values{grid-template-columns:55px minmax(0,1fr);column-gap:4px}
+  #dashboard .quota-values .q-label,#dashboard .quota-values .q-value{white-space:nowrap;text-align:left}
+  #dashboard .annual-fm{display:grid!important;grid-template-columns:minmax(0,1fr) max-content;align-items:baseline;column-gap:6px}
+  #dashboard .annual-fm span,#dashboard .annual-fm b{white-space:nowrap;font-size:8.5px}
+  #dashboard .annual-fm b{text-align:right}
+}
+
+/* Jahresüberblick: doppelte Breite = zwei Kontingentkarten */
+#dashboard .annual-overview{grid-column:span 2}
+@media (max-width:760px){#dashboard .annual-overview{grid-column:1/-1}}
+@media print{#dashboard .annual-overview{grid-column:span 2!important}}
+
+/* Jahresueberblick: Inhalt innerhalb der doppelten Kartenbreite */
+#dashboard .annual-overview ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;row-gap:0;margin:0;padding:0;list-style:none}
+#dashboard .annual-overview li{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:baseline;gap:12px;min-width:0;padding:5px 0;border-bottom:1px solid #eee}
+#dashboard .annual-overview li span{min-width:0}
+#dashboard .annual-overview li b{text-align:right;white-space:nowrap}
+#dashboard .annual-overview .annual-fm{display:grid!important;grid-template-columns:minmax(0,1fr) max-content}
+@media (max-width:760px){#dashboard .annual-overview ul{grid-template-columns:1fr}#dashboard .annual-overview li b{white-space:normal}}
+@media print{
+  #dashboard .annual-overview{grid-column:span 2!important}
+  #dashboard .annual-overview ul{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px}
+  #dashboard .annual-overview li{display:grid!important;grid-template-columns:minmax(0,1fr) max-content;gap:6px;padding:3px 0}
+  #dashboard .annual-overview li span,#dashboard .annual-overview li b{font-size:8.5px;line-height:1.15}
+  #dashboard .annual-overview li b{white-space:nowrap;text-align:right}
+}
+
+/* Einheitliche Kategorien/Werte im Jahresüberblick */
+#dashboard .annual-overview li{display:grid;grid-template-columns:minmax(180px,1fr) max-content;align-items:baseline;column-gap:14px}
+#dashboard .annual-overview li span{text-align:left;white-space:normal}
+#dashboard .annual-overview li b{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media print{
+ #dashboard .annual-overview li{display:grid!important;grid-template-columns:minmax(120px,1fr) max-content;column-gap:7px}
+ #dashboard .annual-overview li span{text-align:left;white-space:normal}
+ #dashboard .annual-overview li b{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+}
+
+/* Finale Validierung Jahresueberblick */
+#dashboard .annual-overview ul{align-items:start}
+#dashboard .annual-overview li{width:100%;box-sizing:border-box}
+#dashboard .annual-overview li span{justify-self:start}
+#dashboard .annual-overview li b{justify-self:end}
+@media print{#dashboard .annual-overview ul{align-items:start}#dashboard .annual-overview li{width:100%;box-sizing:border-box}#dashboard .annual-overview li span{justify-self:start}#dashboard .annual-overview li b{justify-self:end}}
+
+/* Finale responsive Ausrichtung des Jahresueberblicks */
+#dashboard .annual-overview ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 30px}
+#dashboard .annual-overview li{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:baseline;column-gap:14px;width:100%;min-width:0}
+#dashboard .annual-overview li span{justify-self:start;text-align:left;min-width:0}
+#dashboard .annual-overview li b{justify-self:end;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (max-width:1050px){#dashboard .annual-overview ul{grid-template-columns:1fr}#dashboard .annual-overview li{grid-template-columns:minmax(0,1fr) max-content}}
+@media (max-width:560px){#dashboard .annual-overview li{grid-template-columns:1fr;row-gap:2px}#dashboard .annual-overview li b{justify-self:start;text-align:left;white-space:normal}}
+@media print{#dashboard .annual-overview ul{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}#dashboard .annual-overview li{display:grid!important;grid-template-columns:minmax(0,1fr) max-content;column-gap:7px}#dashboard .annual-overview li span{justify-self:start;text-align:left}#dashboard .annual-overview li b{justify-self:end;text-align:right;white-space:nowrap}}
+
+/* Prüfübersicht: Desktop >1050px = 2 Spalten; Tablet/Mobil <=1050px = 1 Spalte; Smartphone <=560px = gestapelt; Druck = 2 Spalten */
+
+/* Responsive Harmonisierung: Kalender, Kontingente, Jahresueberblick */
+:root{--cal-day-min:34px;--cal-font:11px;--cal-kw:38px;--quota-label:70px}
+#calendar .day{min-height:var(--cal-day-min);font-size:var(--cal-font);grid-template-columns:18px 25px minmax(0,1fr) auto var(--cal-kw)}
+#calendar .day .kw{width:var(--cal-kw)}
+#dashboard .quota-values{grid-template-columns:var(--quota-label) minmax(0,1fr);column-gap:8px;row-gap:3px}
+#dashboard .quota-values .q-label,#dashboard .quota-values .q-value{white-space:nowrap;text-align:left}
+#dashboard .annual-overview li{grid-template-columns:minmax(180px,1fr) max-content}
+#dashboard .annual-overview li span{white-space:normal}
+#dashboard .annual-overview li b{white-space:nowrap;text-align:right}
+@media (max-width:1050px){
+  #dashboard .quota-values{grid-template-columns:70px minmax(0,1fr)}
+  #dashboard .annual-overview ul{grid-template-columns:1fr}
+  #dashboard .annual-overview li{grid-template-columns:minmax(180px,1fr) max-content}
+}
+@media (max-width:560px){
+  #dashboard .quota-values{grid-template-columns:70px minmax(0,1fr);font-size:11px}
+  #dashboard .quota-values .q-value{white-space:normal}
+  #dashboard .annual-overview li{grid-template-columns:minmax(150px,1fr) max-content;column-gap:8px}
+  #dashboard .annual-overview li b{justify-self:end;text-align:right;white-space:nowrap;font-size:11px}
+}
+@media print{
+  :root{--cal-day-min:30px;--cal-font:9px;--cal-kw:38px;--quota-label:58px}
+  #calendar .day{min-height:var(--cal-day-min);grid-template-columns:18px 25px minmax(0,1fr) auto var(--cal-kw)}
+  #calendar .day .kw{width:var(--cal-kw)}
+  #dashboard .quota-values{grid-template-columns:var(--quota-label) minmax(0,1fr);column-gap:5px;row-gap:2px}
+  #dashboard .quota-values .q-label,#dashboard .quota-values .q-value{white-space:nowrap}
+  #dashboard .annual-overview ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #dashboard .annual-overview li{grid-template-columns:minmax(120px,1fr) max-content}
+  #dashboard .annual-overview li b{justify-self:end;text-align:right;white-space:nowrap}
+}
+
+/* Schutz gegen abgeschnittene bzw. ueberlappende Inhalte */
+#calendar .day{overflow:visible}
+#calendar .day .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#calendar .day .badge{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dashboard .card{min-width:0;overflow:visible}
+#dashboard .quota-values{min-width:0}
+#dashboard .quota-values .q-value{min-width:0;overflow-wrap:break-word}
+#dashboard .annual-overview{min-width:0;overflow:visible}
+#dashboard .annual-overview ul,#dashboard .annual-overview li{min-width:0}
+#dashboard .annual-overview li span{overflow-wrap:break-word}
+@media (max-width:560px){
+  #calendar .day{overflow:visible}
+  #dashboard .quota-values .q-value{white-space:normal;overflow-wrap:anywhere}
+  #dashboard .annual-overview li{grid-template-columns:minmax(0,1fr) auto}
+  #dashboard .annual-overview li span{overflow-wrap:anywhere}
+  #dashboard .annual-overview li b{max-width:48vw;white-space:normal;overflow-wrap:anywhere}
+}
+@media print{
+  #calendar .day{overflow:visible}
+  #calendar .day .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #dashboard .card,#dashboard .annual-overview{overflow:visible}
+  #dashboard .quota-values .q-value{white-space:normal;overflow-wrap:anywhere}
+  #dashboard .annual-overview li span{overflow-wrap:break-word}
+  #dashboard .annual-overview li b{white-space:nowrap}
+}
+
+/* Langtext- und Druckvorschau-Haertung */
+#dashboard .card h3{overflow-wrap:break-word;word-break:normal;max-width:100%}
+#dashboard .quota-values .q-label{min-width:0;overflow-wrap:break-word}
+#dashboard .quota-values .q-value{min-width:0;overflow-wrap:anywhere}
+#dashboard .annual-overview li span{min-width:0;overflow-wrap:anywhere}
+#dashboard .annual-overview li b{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media (max-width:420px){
+ #dashboard .quota-values{grid-template-columns:1fr}
+ #dashboard .quota-values .q-label{font-weight:700;margin-top:3px}
+ #dashboard .annual-overview li{grid-template-columns:1fr}
+ #dashboard .annual-overview li b{justify-self:start;text-align:left;max-width:100%;white-space:normal}
+}
+@media print{
+ #dashboard .card{break-inside:avoid;page-break-inside:avoid;min-width:0}
+ #dashboard .card h3{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+ #dashboard .quota-values{min-width:0}
+ #dashboard .quota-values .q-label{white-space:nowrap}
+ #dashboard .quota-values .q-value{white-space:normal!important;overflow-wrap:anywhere}
+ #dashboard .annual-overview{break-inside:avoid;page-break-inside:avoid}
+ #dashboard .annual-overview li span{white-space:normal;overflow-wrap:anywhere}
+ #dashboard .annual-overview li b{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+ #calendar .day .badge{max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
+/* Korrektur Jahresueberblick: keine Ueberlagerungen */
+#dashboard .annual-overview ul{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+#dashboard .annual-overview li{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;gap:2px;align-content:start;min-width:0;padding:6px 0}
+#dashboard .annual-overview li span{display:block;min-width:0;text-align:left;font-size:11px;line-height:1.25;white-space:normal;overflow-wrap:break-word}
+#dashboard .annual-overview li b{display:block;min-width:0;justify-self:start;text-align:left;font-size:11px;line-height:1.25;white-space:normal;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#dashboard .annual-overview .annual-fm{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:auto auto!important}
+@media (max-width:760px){#dashboard .annual-overview ul{grid-template-columns:1fr;gap:0}#dashboard .annual-overview li{grid-template-columns:1fr;grid-template-rows:auto auto}}
+@media print{
+ #dashboard .annual-overview{grid-column:span 2!important}
+ #dashboard .annual-overview ul{display:grid!important;grid-template-columns:1fr 1fr!important;gap:0 12px!important}
+ #dashboard .annual-overview li,#dashboard .annual-overview .annual-fm{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:auto auto!important;gap:1px!important;padding:3px 0!important;min-width:0!important}
+ #dashboard .annual-overview li span,#dashboard .annual-overview li b{display:block!important;justify-self:start!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:8.5px!important;line-height:1.15!important;max-width:100%!important}
+}
+
+/* FM-Wert im Jahresueberblick konsequent linksbuendig */
+#dashboard .annual-overview li.annual-fm b{justify-self:start!important;text-align:left!important;margin-left:0!important;width:100%!important}
+@media (max-width:760px){#dashboard .annual-overview li.annual-fm b{justify-self:start!important;text-align:left!important;margin-left:0!important}}
+@media print{#dashboard .annual-overview li.annual-fm b{justify-self:start!important;text-align:left!important;margin-left:0!important;width:100%!important}}
+
+.cloudstate{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;background:#fff}.clouddot{width:9px;height:9px;border-radius:50%;background:#888}.clouddot.ok{background:#17883e}.clouddot.busy{background:#d88900}.clouddot.err{background:#c42b1c}
+@media(max-width:700px){.actions{gap:5px}.actions button{font-size:12px;padding:7px 8px}}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:i0f84bba906045b4af568ee102a52dcb msdt:dt="string">0.1 Initial category|0239cc7a-0c96-48a8-9e0e-a383e362571c</mso:i0f84bba906045b4af568ee102a52dcb>
+<mso:TaxCatchAll msdt:dt="string">1;#0.1 Initial category</mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo-bar"></span>
+    <div>
+      <h1>Privater Urlaubsplaner <button id="yPrev" title="Vorjahr">‹</button><span id="hdrYear"></span><button id="yNext" title="Folgejahr">›</button></h1>
+      <div class="sub" id="hdrSub"></div>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="btnRange" class="primary">+ Zeitraum planen</button>
+    <button id="btnImport">Datei einlesen</button>
+    <button id="btnBackup">Gesamtsicherung speichern</button>
+    <button id="btnSettings">Persönliche Einstellungen</button>
+    <button id="btnConfig">Ferien &amp; Sondertage</button>
+    <button id="btnPrint" class="ghost">Drucken / PDF</button>
+    <button id="btnSignIn" class="primary">Mit Microsoft anmelden</button>
+    <button id="btnSync" hidden>Jetzt synchronisieren</button>
+    <button id="btnSignOut" class="ghost" hidden>Abmelden</button>
+  </div>
+  <input type="file" id="fileInput" accept=".json,application/json" multiple hidden>
+</header>
+
+<div class="status" id="status"></div>
+
+<main>
+  <div id="demoBox"></div>
+  <section class="cards" id="dashboard"></section>
+  <section class="calwrap">
+    <div class="legend" id="legend"></div>
+    <div class="calendar" id="calendar"></div>
+  </section>
+  <section class="two">
+    <div class="panel">
+      <h2>Urlaubsblöcke &amp; Abstände</h2>
+      <div id="blocks"></div>
+    </div>
+    <div class="panel" id="sugPanel">
+      <h2>Brückentags-Vorschläge
+        <span class="tools">Übernehmen als
+          <select id="sugType"><option value="T">TU · Tarifurlaub</option><option value="TV">TV – Urlaub Vorjahr</option><option value="FTZ">Tarifliche Freistellung (T-ZUG)</option></select>
+        </span>
+      </h2>
+      <div id="suggestions"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Dialog: Eintrag / Zeitraum -->
+<dialog id="dlgEntry">
+  <form method="dialog" id="fEntry">
+    <div class="dh">Abwesenheit planen <button type="button" class="ghost small" data-close>✕</button></div>
+    <div class="db">
+      <div class="grid2">
+        <label>Von<input type="date" id="eStart" required></label>
+        <label>Bis<input type="date" id="eEnd" required></label>
+        <label>Art
+          <select id="eTyp">
+            <option value="T">TU · Tarifurlaub</option>
+            <option value="TV">TV – Urlaub Vorjahr</option>
+            <option value="FTZ">Tarifliche Freistellung (T-ZUG)</option>
+            <option value="FT">FA1 · Freizeitausgleich (1 Tag = 7,4 Std.)</option>
+              <option value="AU">AU · Arbeitsunfähigkeit</option>
+              <option value="FM">FM · Flexibilitätskonto (Stunden)</option>
+              <option value="GT">GT · Gleittag (1 GT = 7,4 Std.)</option>
+          </select>
+        </label>
+        <label id="lUmf">Umfang je Arbeitstag
+          <select id="eUmf"><option value="1">ganzer Tag</option><option value="0.5">halber Tag</option></select>
+        </label>
+        <label id="lStd" hidden>Stunden je Arbeitstag (leer = ganzer Tag)<input type="number" id="eStd" min="0" step="0.25" placeholder="z. B. 3,5"></label>
+        <label class="full">Bezeichnung (optional)<input type="text" id="eBez" placeholder="z. B. Sommerurlaub" maxlength="60"></label>
+      </div>
+      <div class="preview-box" id="ePrev"></div>
+    </div>
+    <div class="df">
+      <div class="left"><button type="button" class="danger" id="eDel">Einträge im Zeitraum entfernen</button></div>
+      <button type="button" class="ghost" data-close>Abbrechen</button>
+      <button type="submit" class="primary" id="eOk">Übernehmen</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Persönliche Einstellungen -->
+<dialog id="dlgSettings" class="wide">
+  <form method="dialog" id="fSettings">
+    <div class="dh">Persönliche Einstellungen <button type="button" class="ghost small" data-close>✕</button></div>
+    <div class="db">
+      <fieldset><legend>Person &amp; Region</legend>
+        <div class="grid4">
+          <label style="grid-column:span 2">Name<input type="text" id="sName"></label>
+          <label>Planungsjahr<input type="number" id="sJahr" min="2000" max="2100"></label>
+          <label>Bundesland<select id="sLand"></select></label>
+        </div>
+        <div class="wdrow" style="margin-top:10px" id="sRegional"></div>
+      </fieldset>
+      <fieldset><legend>Arbeitszeit</legend>
+        <div class="grid4">
+          <label>Wochenarbeitszeit (Std.)<input type="number" id="sWoche" min="1" max="60" step="0.25"></label>
+          <label class="full" style="grid-column:span 3">Arbeitstage<span class="wdrow" id="sTage"></span></label>
+        </div>
+        <div class="hint" style="margin:10px 0 6px">Optional: abweichende Stunden je Wochentag (leer = Wochenarbeitszeit gleichmäßig verteilt)</div>
+        <div class="wdrow" id="sStd"></div>
+      </fieldset>
+      <fieldset><legend id="sKLeg">Kontingente</legend>
+        <div class="grid4">
+          <label>TU · Tarifurlaub (Tage)<input type="number" id="kT" min="0" step="0.5"></label>
+          <label>TV – Urlaub Vorjahr (Tage)<input type="number" id="kTV" min="0" step="0.5"></label>
+          <label>Tarifliche Freistellung (T-ZUG) (Tage)<input type="number" id="kFTZ" min="0" step="0.5"></label>
+          <label>FA1 · Freizeitausgleich (Std.)<input type="number" id="kFT" min="0" step="0.25"></label>
+          <label>FM – Flexibilitätskonto (Std.)<input type="number" id="kFM" min="0" step="0.5"></label>
+          <label>GT – Gleitzeit-Kontingent (Std.)<input type="number" id="kGT" min="0" step="0.25"></label>
+        </div>
+        <div class="hint" style="margin-top:8px">TV und FT leer lassen = automatischer Übertrag aus dem Vorjahr. Eigener Wert (z. B. aus dem Zeitkonto) hat Vorrang. AU · Arbeitsunfähigkeit wird in der Kontingentübersicht informativ ohne Kontingent ausgewiesen.</div>
+      </fieldset>
+      <fieldset><legend>Übertragsregeln</legend>
+        <div class="grid4">
+          <label>TV-Frist (TT.MM.)<input type="text" id="sFrist" placeholder="31.03." maxlength="6"></label>
+          <label>Max. Übertrag T → TV (Tage)<input type="number" id="sMax" min="0" step="0.5"></label>
+          <div class="hint" style="grid-column:span 2;align-self:end">Rest T wird bis zur Obergrenze als TV übertragen, FA1-Reststunden vollständig. Tarifliche Freistellung (T-ZUG) verfällt zum Jahresende.</div>
+        </div>
+      </fieldset>
+      <fieldset><legend>Farben</legend>
+        <div class="colors" id="sColors"></div>
+        <button type="button" class="ghost small" id="sColReset" style="margin-top:10px">Standardfarben wiederherstellen</button>
+      </fieldset>
+      <fieldset><legend>Hinweise &amp; Anzeige</legend>
+        <div class="grid4">
+          <label>Warnung ab Abstand (Wochen)<input type="number" id="sWarn" min="1" max="52" step="1"></label>
+          <label class="chk" style="grid-column:span 2;align-self:end"><input type="checkbox" id="sFolge"> Januar des Folgejahres als Vorschau anzeigen</label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="df">
+      <div class="left"><button type="button" class="danger" id="sReset">Planung des Jahres leeren …</button></div>
+      <button type="button" class="ghost" data-close>Abbrechen</button>
+      <button type="submit" class="primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Konfiguration -->
+<dialog id="dlgConfig" class="wide">
+  <form method="dialog" id="fConfig">
+    <div class="dh">Kalender-Konfiguration: Ferien und Sondertage <button type="button" class="ghost small" data-close>✕</button></div>
+    <div class="db">
+      <div class="grid2" style="margin-bottom:14px">
+        <label>Bezeichnung der Konfiguration<input type="text" id="cName"></label>
+      </div>
+      <fieldset><legend>Schulferien</legend>
+        <table class="tbl"><thead><tr><th>Bezeichnung</th><th style="width:170px">Beginn</th><th style="width:170px">Ende</th><th style="width:44px"></th></tr></thead><tbody id="cFer"></tbody></table>
+        <button type="button" class="ghost small" data-add="cFer" style="margin-top:8px">+ Ferienzeitraum</button>
+      </fieldset>
+      <fieldset><legend>Betriebliche Sondertage (z. B. Heiligabend, Silvester)</legend>
+        <table class="tbl"><thead><tr><th>Bezeichnung</th><th style="width:170px">Datum</th><th style="width:170px">Frei</th><th style="width:44px"></th></tr></thead><tbody id="cSt"></tbody></table>
+        <button type="button" class="ghost small" data-add="cSt" style="margin-top:8px">+ Sondertag</button>
+      </fieldset>
+    </div>
+    <div class="df">
+      <button type="button" class="ghost" data-close>Abbrechen</button>
+      <button type="submit" class="primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Meldungen -->
+<dialog id="dlgMsg">
+  <div class="dh"><span id="mTitle">Hinweis</span> <button type="button" class="ghost small" data-close>✕</button></div>
+  <div class="db" id="mBody"></div>
+  <div class="df"><button type="button" class="primary" data-close>OK</button></div>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ===================== Konstanten ===================== */
+const STORE = 'urlaubsplaner.v1';
+const WD  = ['SO','MO','DI','MI','DO','FR','SA'];
+const WDL = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const WD_ORDER = ['MO','DI','MI','DO','FR','SA','SO'];
+const MON = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const LAENDER = {BW:'Baden-Württemberg',BY:'Bayern',BE:'Berlin',BB:'Brandenburg',HB:'Bremen',HH:'Hamburg',HE:'Hessen',MV:'Mecklenburg-Vorpommern',NI:'Niedersachsen',NW:'Nordrhein-Westfalen',RP:'Rheinland-Pfalz',SL:'Saarland',SN:'Sachsen',ST:'Sachsen-Anhalt',SH:'Schleswig-Holstein',TH:'Thüringen'};
+const TYPES = {
+  T:  {label:'Urlaub', unit:'Tage', konto:'urlaub'},
+  TV: {label:'Urlaub Vorjahr', unit:'Tage', konto:'urlaubVorjahr'},
+  FTZ:{label:'Tarifliche Freistellung (T-ZUG)', unit:'Tage', konto:'ftz'},
+  FT: {label:'FA1 · Freizeitausgleich', unit:'Stunden', konto:'freizeitausgleichStunden'},
+    AU: {label:'AU · Arbeitsunfähigkeit', unit:'Tage', konto:null},
+    FM: {label:'Flexibilitätskonto', unit:'Stunden', konto:'fmStunden'},
+    GT: {label:'Gleittag', unit:'Stunden', konto:'gtStunden'}
+};
+const COLORS = [
+  ['blk','Urlaubsblock','#d9f2df'],['we','Wochenende','#e4e4e4'],['hol','Feiertag','#c9dcf3'],['holhalf','Halber freier Tag','#e3edf9'],
+  ['ferien','Schulferien','#f2c94c'],['T','TU · Tarifurlaub','#2e9e5b'],['TV','TV Vorjahr','#17603a'],
+  ['FTZ','Tarifliche Freistellung (T-ZUG)','#7b4fb3'],['FT','FA1 · Freizeitausgleich','#139c9c'],['AU','AU · Arbeitsunfähigkeit','#c62828'],['FM','FM · Flexibilitätskonto','#3949ab'],['GT','GT · Gleittag · 1 GT = 7,4 Std.','#00838f']
+];
+const COLOR_DEFAULTS = Object.fromEntries(COLORS.map(c=>[c[0],c[2]]));
+const TYPE_ALIAS = {'T':'T','TV':'TV','FTZ':'FTZ','T-ZUG':'FTZ','TZUG':'FTZ','FA1':'FT','FT':'FT','AU':'AU','ARBEITSUNFÄHIGKEIT':'AU','ARBEITSUNFAEHIGKEIT':'AU','FM':'FM','GT':'GT','GLEITZEIT':'GT','TU':'T','TARIFURLAUB':'T','URLAUB':'T'};
+
+/* ===================== Startwerte (Beispiel) ===================== */
+function templateConfig(){
+  return {
+    typ:'konfiguration', version:'1.0',
+    name:'Kalenderkonfiguration (BEISPIELWERTE – bitte prüfen und anpassen)',
+    jahr:2027,
+    ferien:[
+      {name:'Winterferien (Beispiel)', start:'2027-02-08', ende:'2027-02-12'},
+      {name:'Osterferien (Beispiel)',  start:'2027-03-22', ende:'2027-04-02'},
+      {name:'Pfingstferien (Beispiel)',start:'2027-05-18', ende:'2027-05-28'},
+      {name:'Sommerferien (Beispiel)', start:'2027-08-02', ende:'2027-09-13'},
+      {name:'Herbstferien (Beispiel)', start:'2027-11-02', ende:'2027-11-05'},
+      {name:'Weihnachtsferien (Beispiel)', start:'2027-12-24', ende:'2028-01-07'}
+    ],
+    sondertage:[
+      {name:'Heiligabend', datum:'2027-12-24', anteilFrei:0.5},
+      {name:'Silvester',   datum:'2027-12-31', anteilFrei:0.5}
+    ]
+  };
+}
+function templatePersonal(){
+  return {
+    typ:'persoenlich', version:'1.0',
+    person:{name:'Vorname Nachname'},
+    planung:{
+      jahr:2027, bundesland:'BY',
+      regionaleFeiertage:{mariaeHimmelfahrt:true, augsburgerFriedensfest:false, fronleichnam:false},
+      wochenarbeitszeit:35, arbeitstage:['MO','DI','MI','DO','FR'], stundenProTag:{},
+      warnschwelleWochen:12, tvFrist:'03-31', tvMaxUebertrag:10, zeigeFolgejanuar:true
+    },
+    kontingente:{'2027':{urlaub:30, urlaubVorjahr:0, ftz:0, freizeitausgleichStunden:0, fmStunden:0, gtStunden:0}}
+  };
+}
+
+/* ===================== Datum-Helfer ===================== */
+const pad = n => String(n).padStart(2,'0');
+const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseISO = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const diffDays = (a,b) => Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate())-Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000);
+const fmtD = s => { const d=typeof s==='string'?parseISO(s):s; return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear(); };
+const fmtDw = s => { const d=typeof s==='string'?parseISO(s):s; return WDL[d.getDay()]+', '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'; };
+const fmtN = (n,dec=2) => (Math.round(n*100)/100).toLocaleString('de-DE',{maximumFractionDigits:dec});
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function isoWeek(d){ const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y0)/86400000+1)/7); }
+function toISO(v){
+  if(v==null||v==='') return null; v=String(v).trim();
+  const chk=(y,mo,d)=>{ const x=new Date(y,mo-1,d); return (x.getFullYear()===y&&x.getMonth()===mo-1&&x.getDate()===d)?iso(x):null; };
+  let m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return chk(+m[1],+m[2],+m[3]);
+  m=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); if(m) return chk(+m[3],+m[2],+m[1]);
+  return null;
+}
+function rangeDays(a,b){ const out=[]; let d=parseISO(a); const e=parseISO(b); let g=0; while(d<=e && g++<800){ out.push(iso(d)); d=addDays(d,1);} return out; }
+function easter(y){ const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1; return new Date(y,mo-1,da); }
+
+/* ===================== Feiertage ===================== */
+function legalHolidays(y, land, reg){
+  const E=easter(y), h=[], D=(m,d)=>new Date(y,m-1,d);
+  const add=(d,name)=>h.push({datum:iso(d),name});
+  add(D(1,1),'Neujahr');
+  if(['BW','BY','ST'].includes(land)) add(D(1,6),'Heilige Drei Könige');
+  if((land==='BE'&&y>=2019)||(land==='MV'&&y>=2023)) add(D(3,8),'Internationaler Frauentag');
+  add(addDays(E,-2),'Karfreitag');
+  if(land==='BB') add(E,'Ostersonntag');
+  add(addDays(E,1),'Ostermontag');
+  add(D(5,1),'Tag der Arbeit');
+  add(addDays(E,39),'Christi Himmelfahrt');
+  if(land==='BB') add(addDays(E,49),'Pfingstsonntag');
+  add(addDays(E,50),'Pfingstmontag');
+  if(['BW','BY','HE','NW','RP','SL'].includes(land) || (['SN','TH'].includes(land)&&reg.fronleichnam)) add(addDays(E,60),'Fronleichnam');
+  if(land==='BY'&&reg.augsburgerFriedensfest) add(D(8,8),'Augsburger Hohes Friedensfest');
+  if(land==='SL' || (land==='BY'&&reg.mariaeHimmelfahrt!==false)) add(D(8,15),'Mariä Himmelfahrt');
+  if(land==='TH'&&y>=2019) add(D(9,20),'Weltkindertag');
+  add(D(10,3),'Tag der Deutschen Einheit');
+  if(['BB','MV','SN','ST','TH'].includes(land) || (['HB','HH','NI','SH'].includes(land)&&y>=2018)) add(D(10,31),'Reformationstag');
+  if(['BW','BY','NW','RP','SL'].includes(land)) add(D(11,1),'Allerheiligen');
+  if(land==='SN'){ let d=D(11,22); while(d.getDay()!==3) d=addDays(d,-1); add(d,'Buß- und Bettag'); }
+  add(D(12,25),'1. Weihnachtsfeiertag');
+  add(D(12,26),'2. Weihnachtsfeiertag');
+  return h;
+}
+
+/* ===================== Normalisierung / Validierung ===================== */
+const num = v => { const n=parseFloat(String(v??'').replace(',','.')); return isFinite(n)&&n>=0?n:0; };
+function normPeriods(arr,label,errs){
+  return (Array.isArray(arr)?arr:[]).map((p,i)=>{
+    const s=toISO(p.start), e=toISO(p.ende??p.end);
+    const nm=String(p.name||label).trim();
+    if(!s||!e){ errs.push(`${label} Nr. ${i+1} („${nm}“): ungültiges oder fehlendes Datum`); return null; }
+    if(e<s){ errs.push(`${label} „${nm}“: Ende liegt vor dem Beginn`); return null; }
+    return {name:nm,start:s,ende:e};
+  }).filter(Boolean).sort((a,b)=>a.start.localeCompare(b.start));
+}
+function normConfig(o,errs=[]){
+  return {
+    typ:'konfiguration', version:String(o.version||'1.0'),
+    name:String(o.name||'Kalenderkonfiguration'), jahr:parseInt(o.jahr)||null,
+    ferien:normPeriods(o.ferien,'Ferien',errs),
+    sondertage:(Array.isArray(o.sondertage)?o.sondertage:[]).map((s,i)=>{
+      const d=toISO(s.datum); if(!d){ errs.push(`Sondertag Nr. ${i+1}: ungültiges Datum`); return null; }
+      let a=parseFloat(s.anteilFrei); if(!(a>0&&a<=1)) a=1;
+      return {name:String(s.name||'Sondertag'),datum:d,anteilFrei:a};
+    }).filter(Boolean).sort((a,b)=>a.datum.localeCompare(b.datum))
+  };
+}
+function normPersonal(o,errs=[]){
+  const p=o.planung||{}, k=o.kontingente||{};
+  let at=Array.isArray(p.arbeitstage)?[...new Set(p.arbeitstage.map(x=>String(x).toUpperCase().slice(0,2)).filter(x=>WD.includes(x)))]:['MO','DI','MI','DO','FR'];
+  if(!at.length){ errs.push('Keine gültigen Arbeitstage angegeben – Mo–Fr wird verwendet'); at=['MO','DI','MI','DO','FR']; }
+  let bl=String(p.bundesland||'BY').toUpperCase();
+  if(!LAENDER[bl]){ errs.push(`Unbekanntes Bundesland „${p.bundesland}“ – Bayern (BY) wird verwendet`); bl='BY'; }
+  let wz=parseFloat(p.wochenarbeitszeit); if(!(wz>0)){ if(p.wochenarbeitszeit!=null) errs.push('Ungültige Wochenarbeitszeit – 35 Std. wird verwendet'); wz=35; }
+  const spt={}; if(p.stundenProTag&&typeof p.stundenProTag==='object') for(const [kk,v] of Object.entries(p.stundenProTag)){ const key=String(kk).toUpperCase().slice(0,2); const n=parseFloat(v); if(WD.includes(key)&&n>=0) spt[key]=n; }
+  const farben={}; const fsrc=o.farben||{};
+  for(const [key] of COLORS){ const v=String(fsrc[key]||''); farben[key]=/^#[0-9a-f]{6}$/i.test(v)?v.toLowerCase():COLOR_DEFAULTS[key]; }
+  let jahr=parseInt(p.jahr); if(!(jahr>=2000&&jahr<=2100)) jahr=new Date().getFullYear();
+  const optNum=v=>(v===null||v===undefined||v==='')?null:num(v);
+  const normK=x=>({urlaub:num(x.urlaub), urlaubVorjahr:optNum(x.urlaubVorjahr), ftz:num(x.ftz), freizeitausgleichStunden:optNum(x.freizeitausgleichStunden), fmStunden:x.fmStunden!=null?num(x.fmStunden):num(x.fm)*7.4, gtStunden:num(x.gtStunden)});
+  const kont={};
+  if(k && ['urlaub','ftz','urlaubVorjahr','freizeitausgleichStunden','fmStunden','gtStunden'].some(x=>x in k)) kont[jahr]=normK(k); // Altformat (ein Jahr)
+  else for(const [yy,v] of Object.entries(k||{})){ const n=parseInt(yy); if(n>=2000&&n<=2100&&v&&typeof v==='object') kont[n]=normK(v); }
+  let tvFrist=String(p.tvFrist||'');
+  if(!(/^\d{2}-\d{2}$/.test(tvFrist)&&toISO('2027-'+tvFrist))){ if(p.tvFrist) errs.push('Ungültige TV-Frist – 31.03. wird verwendet'); const old=toISO(p.urlaubVorjahrVerfall); tvFrist=old?old.slice(5):'03-31'; }
+  let tvMax=parseFloat(p.tvMaxUebertrag); if(!(tvMax>=0)) tvMax=10;
+  return {
+    typ:'persoenlich', version:'2.0',
+    person:{name:String((o.person&&o.person.name)||'')},
+    planung:{
+      jahr, bundesland:bl,
+      regionaleFeiertage:Object.assign({mariaeHimmelfahrt:true,augsburgerFriedensfest:false,fronleichnam:false}, p.regionaleFeiertage||{}),
+      wochenarbeitszeit:wz, arbeitstage:WD_ORDER.filter(x=>at.includes(x)), stundenProTag:spt,
+      warnschwelleWochen:parseFloat(p.warnschwelleWochen)>0?parseFloat(p.warnschwelleWochen):12,
+      tvFrist, tvMaxUebertrag:tvMax,
+      zeigeFolgejanuar:p.zeigeFolgejanuar!==false
+    },
+    kontingente:kont,
+    farben
+  };
+}
+
+/* ===================== Zustand ===================== */
+let S;
+function loadState(){
+  try{
+    const o=JSON.parse(localStorage.getItem(STORE)||'null');
+    if(o&&o.config&&o.personal){ S={config:normConfig(o.config),personal:normPersonal(o.personal),plan:o.plan||{},demo:!!o.demo}; return; }
+  }catch(e){}
+  S={config:normConfig(templateConfig()),personal:normPersonal(templatePersonal()),plan:{},demo:true};
+}
+function save(){
+  try{
+    const json=JSON.stringify(S);
+    localStorage.setItem(STORE,json);
+    queueCloudSave();
+    if(window.chrome && window.chrome.webview){
+      window.chrome.webview.postMessage({type:'saveState',payload:S});
+    }
+  }catch(e){ toast('Lokale Speicherung nicht möglich: '+e.message,true); }
+}
+const P = () => S.personal.planung;
+const year = () => P().jahr;
+
+/* ===================== Kalender-Index & Tagesinfo ===================== */
+let IDX=null; const INFO=new Map();
+function buildIdx(){
+  const hol=new Map();
+  for(const s of S.config.sondertage) hol.set(s.datum,{name:s.name,anteilFrei:s.anteilFrei,gesetzlich:false});
+  const exp=list=>{ const m=new Map(); for(const r of list) for(const k of rangeDays(r.start,r.ende)){ if(!m.has(k)) m.set(k,[]); m.get(k).push(r.name); } return m; };
+  const activeFer=(S.config.ferien||[]).filter(f=>!f.api||f.state===P().bundesland);
+  IDX={hol, years:new Set(), fer:exp(activeFer), wf:new Map()};
+  INFO.clear(); KC.clear();
+}
+function ensureYear(yy){
+  if(IDX.years.has(yy)) return; IDX.years.add(yy);
+  for(const h of legalHolidays(yy,P().bundesland,P().regionaleFeiertage)) IDX.hol.set(h.datum,{name:h.name,anteilFrei:1,gesetzlich:true});
+}
+function hoursFor(wd){
+  const p=P(), key=WD[wd];
+  if(!p.arbeitstage.includes(key)) return 0;
+  if(p.stundenProTag[key]!=null) return p.stundenProTag[key];
+  return p.wochenarbeitszeit/p.arbeitstage.length;
+}
+const avgHours = () => P().wochenarbeitszeit/P().arbeitstage.length;
+function info(k){
+  if(INFO.has(k)) return INFO.get(k);
+  const d=parseISO(k), wd=d.getDay(); ensureYear(d.getFullYear()); const hol=IDX.hol.get(k)||null;
+  const arbeitstag=P().arbeitstage.includes(WD[wd]) && hoursFor(wd)>0;
+  const frei=hol?hol.anteilFrei:0;
+  const workday=arbeitstag && frei<1;
+  const factor=workday?(1-frei):0;
+  const fullHours=hoursFor(wd);
+  const r={d,wd,hol,arbeitstag,workday,factor,fullHours,hours:fullHours*factor,weekend:wd===0||wd===6,fer:IDX.fer.get(k)||[],wf:IDX.wf.get(k)||[]};
+  INFO.set(k,r); return r;
+}
+function cost(k,e){
+  const i=info(k); if(!i.workday) return {days:0,hours:0};
+  if(e.typ==='GT'){ const h=7.4; return {days:1,hours:h}; }
+  if(e.typ==='FM'){ const h=Math.min(+e.stunden||0,i.hours); return {days:i.fullHours?h/i.fullHours:0,hours:h}; }
+  if(e.typ==='FT'){ const h=7.4; return {days:1,hours:h}; }
+  const days=Math.min(e.umfang===0.5?0.5:1, i.factor);
+  return {days, hours:days*i.fullHours};
+}
+function totalsFor(plan,yy=year()){
+  const y=String(yy), t={T:{d:0,h:0},TV:{d:0,h:0},FTZ:{d:0,h:0},FT:{d:0,h:0},AU:{d:0,h:0},FM:{d:0,h:0},GT:{d:0,h:0}};
+  for(const [k,e] of Object.entries(plan)){ if(k.slice(0,4)!==y||!t[e.typ]) continue; const c=cost(k,e); t[e.typ].d+=c.days; t[e.typ].h+=c.hours; }
+  return t;
+}
+const isHourType=typ=>['FT','FM','GT'].includes(typ);
+const usedOf = (t,typ) => isHourType(typ)?(t[typ]?.h||0):(t[typ]?.d||0);
+const KC=new Map();
+const tvDeadline = y => `${y}-${P().tvFrist}`;
+const explicitK = y => S.personal.kontingente[y]||null;
+function baseK(y){ for(let i=0;i<15;i++){ const k=explicitK(y-i); if(k) return {k,src:y-i}; } return null; }
+/* Kontingente eines Jahres inkl. automatischem Übertrag (T-Rest → TV mit Obergrenze, FA1-Rest vollständig, Tarifliche Freistellung (T-ZUG) verfällt) */
+function kontFor(y){
+  if(KC.has(y)) return KC.get(y);
+  const b=baseK(y), p=P();
+  const r={y,explicit:!!explicitK(y),exists:!!b,src:b?b.src:null,T:0,TV:0,FTZ:0,FT:0,FM:0,GT:0,tvAuto:false,ftAuto:false,tvCalc:0,ftCalc:0,tvVerfall:0,prevOver:0};
+  KC.set(y,r);
+  if(!b) return r;
+  const k=b.src===y?b.k:{urlaub:b.k.urlaub,ftz:b.k.ftz,urlaubVorjahr:null,freizeitausgleichStunden:null,fmStunden:b.k.fmStunden,gtStunden:b.k.gtStunden};
+  r.T=k.urlaub; r.FTZ=k.ftz; r.FM=num(k.fmStunden); r.GT=num(k.gtStunden);
+  if(baseK(y-1)){
+    const prev=kontFor(y-1), pt=totalsFor(S.plan,y-1), restT=prev.T-pt.T.d;
+    r.tvCalc=Math.max(0,Math.min(p.tvMaxUebertrag,restT));
+    r.tvVerfall=Math.max(0,restT-p.tvMaxUebertrag);
+    if(restT<0) r.prevOver=-restT;
+    r.ftCalc=Math.max(0,prev.FT-pt.FT.h);
+  }
+  if(k.urlaubVorjahr==null){ r.tvAuto=true; r.TV=r.tvCalc; } else { r.TV=k.urlaubVorjahr; r.tvVerfall=0; }
+  if(k.freizeitausgleichStunden==null){ r.ftAuto=true; r.FT=r.ftCalc; } else r.FT=k.freizeitausgleichStunden;
+  return r;
+}
+const availOf = (typ,y=year()) => kontFor(y)[typ];
+function isAbsentFull(k){
+  const e=S.plan[k]; if(!e) return false; const i=info(k); if(!i.workday) return false;
+  if(e.typ==='GT') return true;
+  if(e.typ==='FM') return (+e.stunden||0) >= i.hours-1e-6;
+  if(e.typ==='FT') return true;
+  return true;
+}
+
+/* ===================== Urlaubsblöcke ===================== */
+function computeBlocks(){
+  const y=year(), lo=`${y-1}-12-01`, hi=`${y+1}-01-31`;
+  const abs=Object.keys(S.plan).filter(k=>k>=lo && k<=hi && isAbsentFull(k)).sort();
+  const blocks=[]; let cur=null;
+  for(const k of abs){
+    if(cur){
+      let ok=true, d=addDays(parseISO(cur.last),1); const tgt=parseISO(k);
+      while(d<tgt){ if(info(iso(d)).workday){ ok=false; break; } d=addDays(d,1); }
+      if(ok){ cur.last=k; cur.days.push(k); continue; }
+    }
+    cur={first:k,last:k,days:[k]}; blocks.push(cur);
+  }
+  for(const b of blocks){
+    let s=parseISO(b.first), g=0; while(g++<40 && !info(iso(addDays(s,-1))).workday) s=addDays(s,-1);
+    let e=parseISO(b.last); g=0; while(g++<40 && !info(iso(addDays(e,1))).workday) e=addDays(e,1);
+    b.start=iso(s); b.end=iso(e); b.kal=diffDays(s,e)+1;
+    const use={}; let name='';
+    for(const k of b.days){ const en=S.plan[k], c=cost(k,en); use[en.typ]=(use[en.typ]||0)+(isHourType(en.typ)?c.hours:c.days); if(!name&&en.bezeichnung) name=en.bezeichnung; }
+    b.use=use; b.name=name;
+    const wf=new Set(), fe=new Set(); for(const k of rangeDays(b.start,b.end)){ info(k).wf.forEach(x=>wf.add(x)); info(k).fer.forEach(x=>fe.add(x)); }
+    b.wf=[...wf]; b.fer=[...fe];
+  }
+  const res=blocks.filter(b=>b.end>=`${y}-01-01`);
+  for(let i=0;i<res.length-1;i++){ const gap=diffDays(parseISO(res[i].end),parseISO(res[i+1].start))-1; res[i].gapWeeks=gap/7; }
+  return res;
+}
+
+/* ===================== Brückentage ===================== */
+function computeSuggestions(){
+  const y=year(), start=new Date(y,0,1), end=new Date(y+1,0,31), res=[], seen=new Set();
+  const free=k=>!info(k).workday;
+  const planned=k=>!!S.plan[k];
+  const isHol=k=>{ const h=IDX.hol.get(k); return !!(h&&h.anteilFrei>=1&&P().arbeitstage.includes(WD[parseISO(k).getDay()])); };
+  for(let d=start; d<=end; d=addDays(d,1)){
+    const k=iso(d);
+    if(free(k) || planned(k) || !free(iso(addDays(d,-1)))) continue;
+    let ls=addDays(d,-1), hasHol=false, g=0;
+    while(g++<40 && free(iso(ls))){ if(isHol(iso(ls))) hasHol=true; ls=addDays(ls,-1); }
+    ls=addDays(ls,1);
+    let cur=d, days=[], costSum=0, stop=false;
+    while(!stop){
+      while(!free(iso(cur))){
+        if(cur>end || days.length>=4 || planned(iso(cur))){ stop=true; break; }
+        const kk=iso(cur); days.push(kk); costSum+=info(kk).factor; cur=addDays(cur,1);
+      }
+      if(stop) break;
+      let re=cur, rHol=false; g=0;
+      while(g++<40 && free(iso(re))){ if(isHol(iso(re))) rHol=true; re=addDays(re,1); }
+      re=addDays(re,-1); hasHol=hasHol||rHol;
+      const total=diffDays(ls,re)+1, eff=total/costSum, key=days.join('|');
+      if(hasHol && eff>=2 && total>=4 && !seen.has(key)){
+        seen.add(key);
+        const hols=rangeDays(iso(ls),iso(re)).filter(isHol).map(x=>IDX.hol.get(x).name);
+        const wf=new Set(), fe=new Set(); rangeDays(iso(ls),iso(re)).forEach(x=>{ info(x).wf.forEach(n=>wf.add(n)); info(x).fer.forEach(n=>fe.add(n)); });
+        res.push({days:[...days],cost:costSum,start:iso(ls),end:iso(re),total,hols:[...new Set(hols)],wf:[...wf],fer:[...fe]});
+      }
+      cur=addDays(re,1);
+    }
+  }
+  return res.sort((a,b)=>a.days[0].localeCompare(b.days[0]) || a.days.length-b.days.length);
+}
+
+/* ===================== Rendering ===================== */
+const $ = s => document.querySelector(s);
+function applyColors(){ const f=S.personal.farben||COLOR_DEFAULTS; for(const [key] of COLORS) document.documentElement.style.setProperty('--'+key,f[key]||COLOR_DEFAULTS[key]); }
+
+async function syncSchoolHolidays(silent=true){
+  const y=year(), state=P().bundesland;
+  try{
+    throw new Error('Online-Abfrage in der Vorschau nicht verfügbar');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const rows=(Array.isArray(data)?data:(data.data||data.holidays||[])).map(x=>({
+      name:x.name_cp||x.name||x.type||'Schulferien',
+      start:String(x.start||x.startDate||'').slice(0,10),
+      ende:String(x.end||x.endDate||'').slice(0,10), api:true, state, year:y
+    })).filter(x=>x.start&&x.ende);
+    S.config.ferien=S.config.ferien.filter(x=>!x.api).concat(rows);
+    save(); INFO.clear(); KC.clear(); renderAll();
+    if(!silent) toast(`${rows.length} Ferienzeiträume für ${LAENDER[state]} ${y} geladen`);
+  }catch(err){ if(!silent) toast('Ferien konnten nicht online geladen werden; vorhandene Daten bleiben erhalten',true); }
+}
+
+window.onresize=()=>{ const els=document.querySelectorAll('#dashboard .tzug-title'); if(els.length){ els.forEach(el=>{el.style.fontSize='14px';}); requestAnimationFrame(()=>els.forEach(el=>{let z=14;while(el.scrollWidth>el.clientWidth&&z>9){z-=0.5;el.style.fontSize=z+'px';}})); }};
+function renderAll(){ applyColors(); buildIdx(); renderHeader(); renderStatus(); renderDash(); renderLegend(); renderCalendar(); renderBlocks(); renderSuggestions(); }
+
+function renderHeader(){
+  $('#hdrYear').textContent=year();
+  const p=P();
+  $('#hdrSub').textContent=[S.personal.person.name||'ohne Namen', LAENDER[p.bundesland], fmtN(p.wochenarbeitszeit)+' Std./Woche · '+p.arbeitstage.map(x=>WDL[WD.indexOf(x)]).join(' ')].join('  ·  ');
+}
+function renderStatus(){
+  const c=S.config, y=year(), parts=[];
+  parts.push(`Konfiguration: <b>${esc(c.name)}</b>`);
+  const K=kontFor(y);
+  if(!K.exists) parts.push(`<span class="warn">Für ${y} sind keine Kontingente hinterlegt – bitte unter „Persönliche Einstellungen“ erfassen</span>`);
+  else if(!K.explicit) parts.push(`<span class="warn">Kontingente ${y} noch nicht angelegt – Werte aus ${K.src} übernommen (unter „Persönliche Einstellungen“ speichern)</span>`);
+  const inYear=c.ferien.some(r=>r.start.slice(0,4)==y||r.ende.slice(0,4)==y);
+  if(!inYear) parts.push(`<span class="warn">Keine Feriendaten für ${y} hinterlegt</span>`);
+  parts.push('<span class="cloudstate"><i class="clouddot '+cloudState+'"></i>'+esc(cloudText)+'</span>');
+  $('#status').innerHTML=parts.map(x=>`<span>${x}</span>`).join('');
+  const b=$('#demoOff'); if(b) b.onclick=()=>{ S.demo=false; save(); renderStatus(); };
+}
+function validateDayQuotaMath(){
+  const samples=[
+    {typ:'TV',avail:5,used:2,rest:3},
+    {typ:'FTZ',avail:8,used:3.5,rest:4.5},
+    {typ:'TV',avail:0,used:0,rest:0}
+  ];
+  return samples.every(x=>Math.abs((x.avail-x.used)-x.rest)<1e-9);
+}
+function validateQuotaMath(){
+  const samples=[
+    {avail:74,used:14.8,rest:59.2},
+    {avail:37,used:7.4,rest:29.6},
+    {avail:0,used:0,rest:0}
+  ];
+  return samples.every(x=>Math.abs((x.avail-x.used)-x.rest)<1e-9 && Math.abs((x.rest/7.4)*7.4-x.rest)<1e-9);
+}
+function validateAnnualOverview(t,totDays){
+  const eps=1e-9;
+  return Math.abs(totDays-(t.T.d+t.TV.d+t.FTZ.d))<eps
+    && Math.abs((t.FT.h/7.4)*7.4-t.FT.h)<eps
+    && Math.abs((t.FM.h/7.4)*7.4-t.FM.h)<eps
+    && Math.abs((t.GT.h/7.4)*7.4-t.GT.h)<eps;
+}
+function validateAnnualCalculations(t,totDays,freeCal,blocks,longest,maxGap,janTxt){
+  const eps=1e-9, num=x=>Number.isFinite(+x);
+  const uniqueAnnual=[
+    'TU · Tarifurlaub/Freistellung verplant:','FA1 · Freizeitausgleich:','FM · Flexibilitätskonto:',
+    'AU · Arbeitsunfähigkeit:','GT · Gleittag:','Freie Kalendertage in Blöcken:',
+    'Urlaubsblöcke / längster:','Längster Abstand:','Januar Folgejahr:'
+  ];
+  return uniqueAnnual.length===new Set(uniqueAnnual).size
+    && Math.abs(totDays-(t.T.d+t.TV.d+t.FTZ.d))<eps
+    && Math.abs((t.FT.h/7.4)*7.4-t.FT.h)<eps
+    && Math.abs((t.FM.h/7.4)*7.4-t.FM.h)<eps
+    && num(t.AU.d) && t.AU.d>=0
+    && Math.abs((t.GT.h/7.4)*7.4-t.GT.h)<eps
+    && Number.isInteger(freeCal) && freeCal>=0
+    && Array.isArray(blocks) && longest===(blocks.length?Math.max(...blocks.map(b=>b.end-b.start+1)):0)
+    && (maxGap===null||num(maxGap))
+    && typeof janTxt==='string';
+}
+function validateAnnualLabels(){
+  const labels=['TU · Tarifurlaub/Freistellung verplant:','FA1 · Freizeitausgleich:','FM · Flexibilitätskonto:','AU · Arbeitsunfähigkeit:','GT · Gleittag:','Freie Kalendertage in Blöcken:','Urlaubsblöcke / längster:','Längster Abstand:'];
+  return labels.length===new Set(labels).size && labels.every(x=>x.endsWith(':'));
+}
+function renderDash(){
+  console.assert(validateQuotaMath() && validateDayQuotaMath() && validateAnnualLabels(),'Kontingent- oder Jahresbeschriftung fehlerhaft');
+  const y=year(), t=totalsFor(S.plan,y), avg=avgHours(), p=P(), blocks=computeBlocks(), K=kontFor(y), dl=tvDeadline(y);
+  const prognose=iso(new Date())<`${y}-01-01`;
+  let html='';
+  const tvNext=totalsFor(S.plan,y+1).TV.d, Kn=kontFor(y+1);
+  for(const typ of ['T','TV','FTZ','FT','FM','GT']){
+    const avail=K[typ], usedOwn=usedOf(t,typ), extra=typ==='T'?tvNext:0, used=usedOwn+extra, rest=avail-used, restOwn=avail-usedOwn;
+    const pct=avail>0?Math.min(100,used/avail*100):(used>0?100:0);
+    const isH=isHourType(typ), notes=[];
+    if(typ==='T'){
+      if(K.prevOver) notes.push(`<span class="neg">Warnung: ${y-1} um ${fmtN(K.prevOver)} Tage überplant</span>`);
+      if(extra) notes.push(`inkl. ${fmtN(extra)} Tage TV in ${y+1}`);
+      if(restOwn>p.tvMaxUebertrag) notes.push(`Übertragbar max. ${fmtN(p.tvMaxUebertrag)} – ${fmtN(restOwn-p.tvMaxUebertrag)} Tage bis 31.12. verplanen`);
+      if(extra>Kn.TV+1e-9) notes.push(`<span class="neg">Warnung: TV ${y+1} um ${fmtN(extra-Kn.TV)} Tage überplant</span>`);
+    }
+    if(typ==='TV'){
+      if(K.tvAuto) notes.push(`Übertrag aus ${y-1}${prognose?' (Prognose)':''}`);
+      if(K.tvVerfall) notes.push(`<span class="neg">${fmtN(K.tvVerfall)} Tage aus ${y-1} über Obergrenze verfallen</span>`);
+      const late=Object.entries(S.plan).filter(([k,e])=>e.typ==='TV'&&k.slice(0,4)===String(y)&&k>dl).length;
+      if(late) notes.push(`<span class="neg">${late} TV-Tag(e) nach Frist ${fmtD(dl)}</span>`);
+      else if(rest>0) notes.push(`<span class="neg">Rest bis ${fmtD(dl)} verplanen</span>`);
+    }
+    if(typ==='FTZ' && rest>0) notes.push(`Rest verfällt zum 31.12.${y}`);
+    if(['T','TV','FTZ'].includes(typ)){
+      notes.push(`<div class="quota-values">
+        <span class="q-label">Verfügbar:</span><span class="q-value">${fmtN(avail)} Tage</span>
+        <span class="q-label">Verplant:</span><span class="q-value">${fmtN(typ==='T'?used:usedOwn)} Tage</span>
+        <span class="q-label">Rest:</span><span class="q-value">${fmtN(rest)} Tage</span>
+      </div>`);
+    }
+    if(['FT','FM','GT'].includes(typ)){
+      if(typ==='FT') notes.push('Fixwert: 1 FA1-Tag = 7,4 Std.');
+      if(typ==='GT') notes.push('Fixwert: Jeder geplante GT zieht 7,4 Std. vom GT-Kontingent ab.');
+      notes.push(`<div class="quota-values">
+        <span class="q-label">Verfügbar:</span><span class="q-value">${fmtN(avail)} Std. = ${fmtN(avail/7.4,1)} Tage</span>
+        <span class="q-label">Verplant:</span><span class="q-value">${fmtN(usedOwn)} Std. = ${fmtN(usedOwn/7.4,1)} Tage</span>
+        <span class="q-label">Rest:</span><span class="q-value">${fmtN(rest)} Std. = ${fmtN(rest/7.4,1)} Tage</span>
+      </div>`);
+    }
+    if(typ==='FT' && K.ftAuto && K.FT>0) notes.push(`Übertrag aus ${y-1}${prognose?' (Prognose)':''}`);
+    if(rest<0) notes.push(`<span class="neg">Warnung: überplant</span>`);
+    html+=`<div class="card" style="--c:var(--${typ})">
+      <h3 class="${typ==='FTZ'?'tzug-title':''}">${typ==='FT'?'FA1 · Freizeitausgleich':typ==='FTZ'?'Tarifliche Freistellung (T-ZUG)':typ==='TV'?'TV · Urlaub Vorjahr':typ==='FM'?'FM · Flexibilitätskonto':typ==='GT'?'GT · Gleittag':typ==='T'?'TU · Tarifurlaub':typ+' · '+TYPES[typ].label}</h3>
+      ${isH?'':`<div class="big ${rest<0?'neg':''}">${fmtN(rest)} <small>Tage übrig</small></div>`}
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="meta">${isH?`<span>Umrechnung: 7,4 Std. = 1 Tag</span>`:``}</div>
+      ${notes.map(n=>`<div class="meta"><span>${n}</span></div>`).join('')}</div>`;
+  }
+  const auDays=t.AU.d;
+  html+=`<div class="card" style="--c:var(--AU)">
+    <h3>${TYPES.AU.label}</h3>
+    <div class="big">${fmtN(auDays)} <small>Tage erfasst</small></div>
+    <div class="bar"><i style="width:${auDays>0?'100':'0'}%"></i></div>
+    <div class="meta"><span>informative Auswertung</span><span>ohne Kontingent</span></div>
+  </div>`;
+  const totDays=t.T.d+t.TV.d+t.FTZ.d;
+  console.assert(validateAnnualOverview(t,totDays),'Jahresüberblick: Werteprüfung fehlgeschlagen');
+  const freeCal=blocks.reduce((s,b)=>s+b.kal,0), longest=blocks.reduce((m,b)=>Math.max(m,b.kal),0);
+  const gaps=blocks.filter(b=>b.gapWeeks!=null).map(b=>b.gapWeeks), maxGap=gaps.length?Math.max(...gaps):null;
+  const js={T:0,TV:0,FTZ:0,FT:0};
+  for(const [k,e] of Object.entries(S.plan)) if(k.startsWith(`${y+1}-01`)){ const c=cost(k,e); js[e.typ]+=isHourType(e.typ)?c.hours:c.days; }
+  const janTxt=['T','TV','FTZ'].filter(x=>js[x]).map(x=>`${x} ${fmtN(js[x])}`).concat(js.FT?[`FA1 ${fmtN(js.FT)} h`]:[]).join(' · ');
+  let workdays=0;
+  for(let d=new Date(y,0,1); d<=new Date(y,11,31); d.setDate(d.getDate()+1)) if(info(iso(d)).workday) workdays++;
+  const absenceDays=t.T.d+t.TV.d+t.FTZ.d+(t.FT.h/7.4)+(t.FM.h/7.4)+t.AU.d+(t.GT.h/7.4);
+  const remainingWorkdays=Math.max(0,workdays-absenceDays);
+  html+=`<div class="card" style="--c:#1565c0"><h3>Arbeitstage ${y}</h3>
+    <div class="big">${fmtN(workdays)} <small>Arbeitstage</small></div>
+    <div class="bar"><i style="width:100%"></i></div>
+    <div class="meta"><span>${LAENDER[p.bundesland]}</span><span>gesetzliche Feiertage berücksichtigt</span></div></div>`;
+  html+=`<div class="card" style="--c:#2e7d32"><h3>Restarbeitstage ${y}</h3>
+    <div class="big">${fmtN(remainingWorkdays,1)} <small>Tage</small></div>
+    <div class="bar"><i style="width:${workdays?Math.max(0,Math.min(100,remainingWorkdays/workdays*100)):0}%"></i></div>
+    <div class="meta"><span>abzüglich Urlaub, FA1, FM, AU und GT</span><span>GT: ${fmtN(t.GT.h)} Std. ÷ 7,4</span></div></div>`;
+  html+=`<div class="card annual-overview"><h3>Jahresüberblick ${y}</h3><ul>
+    <li><span>TU · Tarifurlaub/Freistellung verplant:</span><b>${fmtN(totDays)} Tage</b></li>
+    <li><span>FA1 · Freizeitausgleich:</span><b>${fmtN(t.FT.h)} Std. = ${fmtN(t.FT.h/7.4,1)} Tage</b></li>
+    <li class="annual-fm"><span>FM · Flexibilitätskonto:</span><b>${fmtN(t.FM.h)} Std. = ${fmtN(t.FM.h/7.4,1)} Tage</b></li>
+    <li><span>AU · Arbeitsunfähigkeit:</span><b>${fmtN(t.AU.d)} Tage</b></li>
+    <li><span>GT · Gleittag:</span><b>${fmtN(t.GT.h)} Std. = ${fmtN(t.GT.h/7.4,1)} Tage</b></li>
+    <li><span>Freie Kalendertage in Blöcken:</span><b>${freeCal}</b></li>
+    <li><span>Urlaubsblöcke / längster:</span><b>${blocks.length} / ${longest} Tage</b></li>
+    <li><span>Längster Abstand:</span><b class="${maxGap!=null&&maxGap>p.warnschwelleWochen?'neg':''}">${maxGap!=null?fmtN(maxGap,1)+' Wochen':'–'}</b></li>
+    ${p.zeigeFolgejanuar?`<li><span>Januar ${y+1} (Kontingent ${y+1}):</span><b>${janTxt||'–'}</b></li>`:''}
+  </ul></div>`;
+  const ferienY=(S.config.ferien||[]).filter(f=>{ if(f.api&&f.state!==p.bundesland) return false;
+    const a=String(f.start||''), e=String(f.ende||'');
+    return a.startsWith(String(y)) || e.startsWith(String(y)) || (a < `${y}-01-01` && e > `${y}-12-31`);
+  }).sort((a,b)=>String(a.start).localeCompare(String(b.start)));
+  const feiertageY=legalHolidays(y,p.bundesland,p.regionaleFeiertage).slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  const customY=(S.config.sondertage||[]).filter(h=>String(h.datum||'').startsWith(String(y))).sort((a,b)=>a.datum.localeCompare(b.datum));
+  const fmtRange=f=>`${fmtD(f.start)}${f.ende&&f.ende!==f.start?' – '+fmtD(f.ende):''}`;
+  html+=`<div class="card" style="grid-column:1/-1"><h3>Verwendete Kalenderdaten · ${LAENDER[p.bundesland]} ${y}</h3>
+    <details><summary><b>Schulferien</b> · ${ferienY.length} Zeitraum/Zeiträume</summary>
+      <ul>${ferienY.length?ferienY.map(f=>`<li><span>${esc(f.name||'Schulferien')}</span><b>${fmtRange(f)}</b></li>`).join(''):'<li><span>Keine Ferientermine geladen</span><b>–</b></li>'}</ul>
+    </details>
+    <details style="margin-top:10px"><summary><b>Feiertage</b> · ${feiertageY.length+customY.length} Termin(e)</summary>
+      <ul>${[...feiertageY.map(h=>({...h,src:'gesetzlich'})),...customY.map(h=>({...h,src:'zusätzlich'}))].sort((a,b)=>(a.datum||'').localeCompare(b.datum||'')).map(h=>`<li><span>${esc(h.name)}${h.src==='zusätzlich'?' · zusätzlich':''}</span><b>${fmtD(h.datum)}</b></li>`).join('')||'<li><span>Keine Feiertage hinterlegt</span><b>–</b></li>'}</ul>
+    </details>
+  </div>`;
+  $('#dashboard').innerHTML=html;
+  // T-ZUG: Schrift nur dann verkleinern, wenn der einzeilige Titel seine verfügbare Breite überschreitet.
+  const fitTzugTitle=()=>{
+    document.querySelectorAll('#dashboard .tzug-title').forEach(el=>{
+      el.style.fontSize='14px'; el.style.letterSpacing='0px';
+      let size=14;
+      while(el.scrollWidth>el.clientWidth && size>9){ size-=0.5; el.style.fontSize=size+'px'; }
+      if(el.scrollWidth>el.clientWidth) el.style.letterSpacing='-0.2px';
+    });
+  };
+  fitTzugTitle();
+  requestAnimationFrame(fitTzugTitle);
+}
+function renderLegend(){
+  const sw=(bg,txt,extra='')=>`<span><span class="sw" style="background:${bg};${extra}"></span>${txt}</span>`;
+  $('#legend').innerHTML=[
+    sw('var(--blk)','Urlaubsblock'), sw('var(--we)','Wochenende / kein Arbeitstag'), sw('var(--hol)','Feiertag'), sw('var(--holhalf)','halber freier Tag'),
+    sw('#fff','Schulferien','border-left:4px solid var(--ferien)'),
+    sw('var(--T)','TU · Tarifurlaub'), sw('var(--TV)','TV Vorjahr'), sw('var(--FTZ)','Tarifliche Freistellung (T-ZUG)'), sw('var(--FT)','FA1 · Freizeitausgleich (1 Tag = 7,4 Std.)'), sw('var(--AU)','AU · Arbeitsunfähigkeit'), sw('var(--FM)','FM · Flexibilitätskonto (Stunden)'), sw('var(--GT)','GT · Gleittag (1 GT = 7,4 Std.)'),
+    '<span class="tip">Tipp: Klicken oder mit gedrückter Maustaste einen Zeitraum ziehen</span>'
+  ].join('');
+}
+function renderCalendar(){
+  const y=year(), show=P().zeigeFolgejanuar, months=[];
+  for(let m=0;m<12;m++) months.push([y,m,false]);
+  if(show) months.push([y+1,0,true]);
+  const cal=$('#calendar'); cal.style.setProperty('--cols',months.length);
+  const blk=new Set(); for(const b of computeBlocks()) for(const k of rangeDays(b.start,b.end)) blk.add(k);
+  let html='';
+  for(const [yy,m,prev] of months){
+    const dim=new Date(yy,m+1,0).getDate(), sums={T:0,TV:0,FTZ:0,FT:0,AU:0,FM:0,GT:0};
+    html+=`<div class="month"><div class="mh">${MON[m]}${prev?` <small>${yy}</small>`:''}</div>`;
+    for(let day=1;day<=31;day++){
+      if(day>dim){ html+='<div class="day empty"></div>'; continue; }
+      const k=iso(new Date(yy,m,day)), i=info(k), e=S.plan[k];
+      const cls=['day'];
+      if(!i.arbeitstag) cls.push('we');
+      if(i.hol) cls.push(i.hol.anteilFrei>=1?'hol':'half');
+      if(blk.has(k)) cls.push('blk');
+      if(i.fer.length) cls.push('fer');
+      if(i.wf.length) cls.push('wf');
+      if(i.wd===1) cls.push('mo');
+      let tx=i.hol?i.hol.name:'';
+        const kw=i.wd===1?'KW'+pad(isoWeek(i.d)):'';
+      if(!i.hol && e && e.bezeichnung) tx=e.bezeichnung;
+      let badge='';
+      if(e){
+        const c=cost(k,e); sums[e.typ]+=isHourType(e.typ)?c.hours:c.days;
+        badge=`<span class="badge ${e.typ}">${e.typ==='FT'?'FA1':e.typ==='FTZ'?'T-ZUG':e.typ}${isHourType(e.typ)?' '+fmtN(['GT','FT'].includes(e.typ)?7.4:+e.stunden,2)+'h':(e.umfang===0.5?' ½':'')}</span>`;
+      }
+      const tip=[fmtD(k)+' ('+WDL[i.wd]+'), KW '+isoWeek(i.d)];
+      if(i.hol) tip.push((i.hol.anteilFrei>=1?'Feiertag: ':'Halber freier Tag: ')+i.hol.name);
+      i.fer.forEach(x=>tip.push('Schulferien: '+x));
+      if(e){ const visibleType=e.typ==='AU'?TYPES.AU.label:(e.typ==='FT'?'FA1 · Freizeitausgleich':e.typ==='FTZ'?'Tarifliche Freistellung (T-ZUG)':e.typ==='T'?'TU · Tarifurlaub':e.typ+' – '+TYPES[e.typ].label); tip.push(`${visibleType}${isHourType(e.typ)?' ('+fmtN(e.typ==='FT'?7.4:+e.stunden)+' Std.)':(e.umfang===0.5?' (halber Tag)':'')}${e.bezeichnung?' – '+e.bezeichnung:''}`); }
+      html+=`<div class="${cls.join(' ')}" data-d="${k}" title="${esc(tip.join('\n'))}"><span class="kw">${kw}</span><span class="datewd"><span class="dn">${pad(day)}</span><span class="wd">${WDL[i.wd]}.</span></span><span class="tx">${esc(tx)}</span>${badge}</div>`;
+    }
+    const f=['T','TV','FTZ','AU'].filter(t=>sums[t]).map(t=>`${t==='FTZ'?'T-ZUG':t} ${fmtN(sums[t])}`);
+    if(sums.FT) f.push(`FA1 ${fmtN(sums.FT)} h`);
+    html+=`<div class="mf">${prev?`Kontingent ${yy}: `:''}${f.join(' · ')||'–'}</div></div>`;
+  }
+  cal.innerHTML=html;
+}
+function useText(u){ return Object.entries(u).map(([t,v])=>`${t} ${fmtN(v)}${t==='FT'?' h':''}`).join(' · '); }
+function renderBlocks(){
+  const blocks=computeBlocks(), th=P().warnschwelleWochen;
+  if(!blocks.length){ $('#blocks').innerHTML='<p class="hint">Noch keine ganztägigen Abwesenheiten geplant. Wochenenden und Feiertage verbinden Urlaubstage zu einem Block.</p>'; return; }
+  let h='<table class="tbl"><thead><tr><th>#</th><th>Zeitraum (inkl. freier Tage)</th><th class="num">Freie Tage</th><th>Einsatz</th></tr></thead><tbody>';
+  blocks.forEach((b,i)=>{
+    const notes=[]; if(b.fer.length) notes.push('Ferien');
+    h+=`<tr><td>${i+1}</td><td><b>${fmtDw(b.start)} – ${fmtDw(b.end)}</b>${b.name?` <span class="hint">· ${esc(b.name)}</span>`:''}${notes.length?`<div class="hint" style="font-size:11px">überschneidet: ${notes.join(', ')}</div>`:''}</td><td class="num">${b.kal}</td><td>${useText(b.use)}</td></tr>`;
+    if(b.gapWeeks!=null){ const warn=b.gapWeeks>th; h+=`<tr class="gaprow${warn?' warnrow':''}"><td></td><td colspan="3">↓ Abstand zum nächsten Block: ${fmtN(b.gapWeeks,1)} Kalenderwochen${warn?' – länger als '+fmtN(th)+' Wochen ohne Urlaub':''}</td></tr>`; }
+  });
+  $('#blocks').innerHTML=h+'</tbody></table>';
+}
+let SUGS=[];
+function renderSuggestions(){
+  SUGS=computeSuggestions();
+  if(!SUGS.length){ $('#suggestions').innerHTML='<p class="hint">Keine weiteren sinnvollen Brückentage gefunden (oder bereits verplant).</p>'; return; }
+  $('#suggestions').innerHTML=SUGS.map((s,idx)=>{
+    const dtxt=s.days.length===1?fmtDw(s.days[0]):`${fmtDw(s.days[0])} – ${fmtDw(s.days[s.days.length-1])}`;
+    const notes=[]; if(s.fer.length) notes.push('Schulferien: '+s.fer.join(', '));
+    return `<div class="sug"><div><div class="t">${fmtN(s.cost)} ${s.cost===1?'Tag':'Tage'} → ${s.total} freie Tage</div>
+      <div class="d">Einsetzen: ${dtxt} · frei ${fmtDw(s.start)} – ${fmtDw(s.end)} · ${esc(s.hols.join(', '))}</div>
+      ${notes.length?`<div class="note">${esc(notes.join(' · '))}</div>`:''}</div>
+      <button class="small" data-sug="${idx}">Übernehmen</button></div>`;
+  }).join('');
+}
+
+/* ===================== Planung bearbeiten ===================== */
+function applyToPlan(plan,{a,b,typ,umfang,stunden,bez}){
+  for(const k of rangeDays(a,b)){
+    if(typ==='DEL'){ delete plan[k]; continue; }
+    const i=info(k); if(!i.workday) continue;
+    let e;
+    if(typ==='GT'){ e={typ,stunden:7.4}; }
+    else if(typ==='FM'){ const h=stunden>0?Math.min(stunden,i.hours):i.hours; if(!(h>0)) continue; e={typ,stunden:Math.round(h*100)/100}; }
+    else if(typ==='FT'){ e={typ,stunden:7.4}; }
+    else e={typ,umfang:umfang===0.5?0.5:1};
+    if(bez) e.bezeichnung=bez;
+    plan[k]=e;
+  }
+  return plan;
+}
+let lastTyp='T';
+function readEntry(){
+  let a=$('#eStart').value, b=$('#eEnd').value; if(a&&b&&b<a) [a,b]=[b,a];
+  return {a,b,typ:$('#eTyp').value,umfang:parseFloat($('#eUmf').value),stunden:parseFloat(String($('#eStd').value).replace(',','.'))||0,bez:$('#eBez').value.trim()};
+}
+function openEntry(a,b){
+  if(b<a) [a,b]=[b,a];
+  $('#eStart').value=a; $('#eEnd').value=b;
+  const ex=S.plan[a];
+  if(a===b&&ex){ $('#eTyp').value=ex.typ; $('#eUmf').value=String(ex.umfang||1); $('#eStd').value=ex.stunden||''; $('#eBez').value=ex.bezeichnung||''; }
+  else { $('#eTyp').value=lastTyp; $('#eUmf').value='1'; $('#eStd').value=''; $('#eBez').value=''; }
+  updEntry(); $('#dlgEntry').showModal();
+}
+function updEntry(){
+  const r=readEntry(), isFT=isHourType(r.typ), fixedDay=['FT','GT'].includes(r.typ);
+  $('#lUmf').hidden=isFT; $('#lStd').hidden=!isFT||fixedDay;
+  if(!r.a||!r.b){ $('#ePrev').innerHTML='Bitte Zeitraum wählen.'; return; }
+  const y=String(year()), days=rangeDays(r.a,r.b), inY=days, wds=inY.filter(k=>info(k).workday);
+  const hol=inY.filter(k=>info(k).hol&&info(k).hol.anteilFrei>=1&&info(k).arbeitstag).length;
+  const over=wds.filter(k=>S.plan[k]).length;
+  const sim=applyToPlan({...S.plan},r), unit=isFT?'Std.':'Tage';
+  let h=`<b>${days.length}</b> Kalendertage · <b>${wds.length}</b> Arbeitstage${hol?` · ${hol} Feiertag(e) ohne Verbrauch`:''}`;
+  for(const yy of [...new Set(days.map(k=>+k.slice(0,4)))]){
+    const before=totalsFor(S.plan,yy), after=totalsFor(sim,yy);
+    const noQuota=['AU'].includes(r.typ);
+      const need=usedOf(after,r.typ)-usedOf(before,r.typ), rest=noQuota?null:availOf(r.typ,yy)-usedOf(after,r.typ);
+    h+=noQuota?`<br><b>${r.typ==='AU'?'AU · Arbeitsunfähigkeit':r.typ}</b>${yy!==year()?` (${yy})`:''}: ${fmtN(Math.abs(need))} ${unit} eingetragen · ohne Kontingentverbrauch`:`<br>Bedarf <b>${r.typ}</b>${yy!==year()?` (Kontingent ${yy})`:''}: ${need>=0?'':'−'}${fmtN(Math.abs(need))} ${unit} · Rest danach: <b class="${rest<0?'neg':''}">${fmtN(rest)} ${unit}</b>${rest<0?' <span class="neg">– Warnung: überplant</span>':''}`;
+  }
+  if(r.typ==='T'){
+    for(const yy of [...new Set(wds.map(k=>+k.slice(0,4)))]){
+      const tvRest=availOf('TV',yy)-usedOf(totalsFor(S.plan,yy),'TV'), dl=tvDeadline(yy);
+      if(tvRest>0 && wds.some(k=>+k.slice(0,4)===yy && k<=dl)) h+=`<br><span class="neg">Hinweis: Für ${yy} sind noch ${fmtN(tvRest)} Tage TV offen (Frist ${fmtD(dl)}) – zuerst TV verwenden?</span> <button type="button" class="small ghost" id="eToTV">Als TV eintragen</button>`;
+    }
+  }
+  if(r.typ==='TV'){ const late=wds.filter(k=>k>tvDeadline(+k.slice(0,4))); if(late.length) h+=`<br><span class="neg">Warnung: ${late.length} Tag(e) nach der TV-Frist ${fmtD(tvDeadline(+late[0].slice(0,4)))}.</span>`; }
+  if(over) h+=`<br><span class="neg">${over} bestehende(r) Eintrag/Einträge wird überschrieben.</span>`;
+  $('#ePrev').innerHTML=h;
+}
+
+/* ===================== Import / Export ===================== */
+function download(obj,name){
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },800);
+}
+const slug = s => (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')||'Person';
+function exportPlanObj(){
+  return {typ:'planung',version:'2.0',
+    eintraege:Object.keys(S.plan).sort().map(k=>({datum:k,...S.plan[k]}))};
+}
+function detect(o){
+  if(!o||typeof o!=='object') return null;
+  if(o.typ==='gesamtsicherung'||(o.konfiguration&&o.persoenlich)) return 'backup';
+  if(o.typ==='persoenlich'||o.kontingente||o.planung) return 'personal';
+  if(o.typ==='konfiguration'||o.ferien||o.sondertage) return 'config';
+  if(o.typ==='planung'||Array.isArray(o.eintraege)) return 'plan';
+  return null;
+}
+function importPlan(o,msgs,fname){
+  const legacy=parseInt(o.jahr)||null, errs=[], np={};
+  if(legacy) for(const k of Object.keys(S.plan)) if(k.slice(0,4)!==String(legacy)) np[k]=S.plan[k]; // Altformat: nur dieses Jahr ersetzen
+  (o.eintraege||[]).forEach((e,i)=>{
+    const typ=TYPE_ALIAS[String(e.typ||'').toUpperCase()];
+    if(!typ){ errs.push(`Eintrag ${i+1}: unbekannte Art „${e.typ}“`); return; }
+    const a=toISO(e.datum||e.start), b=toISO(e.datum||e.ende||e.start);
+    if(!a||!b){ errs.push(`Eintrag ${i+1}: ungültiges Datum`); return; }
+    applyToPlan(np,{a,b:b<a?a:b,typ,umfang:parseFloat(e.umfang)===0.5?0.5:1,stunden:parseFloat(e.stunden)||0,bez:e.bezeichnung?String(e.bezeichnung):''});
+  });
+  if(Object.keys(S.plan).length && !confirm(`Die bestehende Planung wird durch „${fname}“ ersetzt. Fortfahren?`)){ msgs.push(`– ${fname}: Import der Planung abgebrochen`); return; }
+  S.plan=np;
+  const ys=[...new Set(Object.keys(np).map(k=>k.slice(0,4)))].sort();
+  msgs.push(`✔ Planung mit ${Object.keys(np).length} Tagen geladen${ys.length?' ('+ys.join(', ')+')':''}`); errs.forEach(x=>msgs.push('   ⚠ '+x));
+}
+async function handleFiles(files){
+  const items=[], msgs=[];
+  for(const f of files){
+    try{ const o=JSON.parse(await f.text()); const t=detect(o); if(!t) throw new Error('Dateiinhalt nicht erkannt – bitte eine Gesamtsicherung des Urlaubsplaners wählen'); items.push({o,t,name:f.name}); }
+    catch(e){ msgs.push(`✖ ${f.name}: ${e.message}`); }
+  }
+  const order={backup:0,personal:1,config:2,plan:3}; items.sort((a,b)=>order[a.t]-order[b.t]);
+  for(const it of items){
+    const errs=[];
+    if(it.t==='backup'){
+      S.personal=normPersonal(it.o.persoenlich||{},errs); S.config=normConfig(it.o.konfiguration||{},errs); buildIdx();
+      msgs.push(`✔ ${it.name}: Gesamtsicherung geladen (${esc(S.personal.person.name||'ohne Namen')}, ${LAENDER[P().bundesland]})`); errs.forEach(x=>msgs.push('   ⚠ '+x));
+      if(it.o.planung) importPlan(it.o.planung,msgs,it.name);
+      S.demo=false;
+    }else if(it.t==='personal'){
+      S.personal=normPersonal(it.o,errs); buildIdx(); S.demo=false;
+      msgs.push(`✔ ${it.name}: Persönliche Einstellungen geladen`); errs.forEach(x=>msgs.push('   ⚠ '+x));
+    }else if(it.t==='config'){
+      S.config=normConfig(it.o,errs); buildIdx(); S.demo=false;
+      msgs.push(`✔ ${it.name}: Kalender-Konfiguration geladen`); errs.forEach(x=>msgs.push('   ⚠ '+x));
+    }else importPlan(it.o,msgs,it.name);
+  }
+  save(); renderAll(); showMsg('Import',`<ul class="msglist">${msgs.map(m=>`<li>${m}</li>`).join('')}</ul>`);
+}
+
+/* ===================== Einstellungen-Dialog ===================== */
+function openSettings(){
+  const p=P();
+  $('#sName').value=S.personal.person.name; $('#sJahr').value=p.jahr;
+  $('#sLand').innerHTML=Object.entries(LAENDER).map(([c,n])=>`<option value="${c}" ${c===p.bundesland?'selected':''}>${n}</option>`).join('');
+  renderRegional(p.bundesland,p.regionaleFeiertage);
+  $('#sWoche').value=p.wochenarbeitszeit;
+  $('#sTage').innerHTML=WD_ORDER.map(d=>`<label class="chk"><input type="checkbox" value="${d}" ${p.arbeitstage.includes(d)?'checked':''}>${WDL[WD.indexOf(d)]}</label>`).join('');
+  $('#sStd').innerHTML=WD_ORDER.map(d=>`<label style="width:80px">${WDL[WD.indexOf(d)]}<input type="number" min="0" max="24" step="0.25" data-std="${d}" value="${p.stundenProTag[d]??''}"></label>`).join('');
+  fillKont(p.jahr);
+  renderColorInputs(S.personal.farben);
+  $('#sWarn').value=p.warnschwelleWochen; $('#sFrist').value=p.tvFrist.split('-').reverse().join('.')+'.'; $('#sMax').value=p.tvMaxUebertrag; $('#sFolge').checked=p.zeigeFolgejanuar;
+  $('#dlgSettings').showModal();
+}
+function fillKont(yy){
+  if(!(yy>=2000&&yy<=2100)) return;
+  const ex=explicitK(yy), K=kontFor(yy);
+  $('#sKLeg').textContent=`Kontingente ${yy}`+(ex?'':' – noch nicht angelegt (Vorschlag aus Vorjahr)');
+  $('#kT').value=ex?ex.urlaub:K.T; $('#kFTZ').value=ex?ex.ftz:K.FTZ; $('#kFM').value=ex?num(ex.fmStunden):K.FM; $('#kGT').value=ex?num(ex.gtStunden):K.GT;
+  $('#kTV').value=ex&&ex.urlaubVorjahr!=null?ex.urlaubVorjahr:''; $('#kTV').placeholder=`automatisch: ${fmtN(K.tvCalc)}`;
+  $('#kFT').value=ex&&ex.freizeitausgleichStunden!=null?ex.freizeitausgleichStunden:''; $('#kFT').placeholder=`automatisch: ${fmtN(K.ftCalc)}`;
+}
+function parseFrist(v){ const m=String(v).trim().match(/^(\d{1,2})\.(\d{1,2})\.?$/); return m?pad(+m[2])+'-'+pad(+m[1]):String(v).trim(); }
+function renderColorInputs(f){
+  $('#sColors').innerHTML=COLORS.map(([key,label])=>`<label><input type="color" data-col="${key}" value="${(f&&f[key])||COLOR_DEFAULTS[key]}">${label}</label>`).join('');
+}
+function renderRegional(land,reg){
+  const opts=[];
+  if(land==='BY'){ opts.push(['mariaeHimmelfahrt','Mariä Himmelfahrt (15.08., überwiegend katholische Gemeinden)']); opts.push(['augsburgerFriedensfest','Augsburger Hohes Friedensfest (08.08., nur Stadt Augsburg)']); }
+  if(land==='SN'||land==='TH') opts.push(['fronleichnam','Fronleichnam (nur in einzelnen Gemeinden)']);
+  $('#sRegional').innerHTML=opts.length?'<span class="hint" style="width:100%">Regionale Feiertage:</span>'+opts.map(([k,l])=>`<label class="chk"><input type="checkbox" data-reg="${k}" ${reg[k]?'checked':''}>${l}</label>`).join(''):'';
+}
+function readSettingsObj(){
+  const reg=Object.assign({},P().regionaleFeiertage); document.querySelectorAll('[data-reg]').forEach(c=>reg[c.dataset.reg]=c.checked);
+  const spt={}; document.querySelectorAll('[data-std]').forEach(i=>{ if(i.value!=='') spt[i.dataset.std]=parseFloat(i.value); });
+  return {typ:'persoenlich',version:'1.0',person:{name:$('#sName').value.trim()},
+    planung:{jahr:parseInt($('#sJahr').value),bundesland:$('#sLand').value,regionaleFeiertage:reg,wochenarbeitszeit:parseFloat($('#sWoche').value),
+      arbeitstage:[...document.querySelectorAll('#sTage input:checked')].map(c=>c.value),stundenProTag:spt,
+      warnschwelleWochen:parseFloat($('#sWarn').value),tvFrist:parseFrist($('#sFrist').value),tvMaxUebertrag:$('#sMax').value,zeigeFolgejanuar:$('#sFolge').checked},
+    kontingente:Object.assign({},S.personal.kontingente,{[parseInt($('#sJahr').value)]:{urlaub:$('#kT').value,urlaubVorjahr:$('#kTV').value,ftz:$('#kFTZ').value,freizeitausgleichStunden:$('#kFT').value,fmStunden:$('#kFM').value,gtStunden:$('#kGT').value}}),
+    farben:Object.fromEntries([...document.querySelectorAll('[data-col]')].map(i=>[i.dataset.col,i.value]))};
+}
+
+/* ===================== Konfig-Dialog ===================== */
+function rowHTML(kind,r={}){
+  const del='<td><button type="button" class="ghost small" data-delrow>✕</button></td>';
+  if(kind==='cSt') return `<tr><td><input data-f="name" value="${esc(r.name||'')}" placeholder="Bezeichnung"></td><td><input type="date" data-f="datum" value="${r.datum||''}"></td><td><select data-f="anteilFrei"><option value="1" ${r.anteilFrei==1?'selected':''}>ganzer Tag</option><option value="0.5" ${r.anteilFrei!=1?'selected':''}>halber Tag</option></select></td>${del}</tr>`;
+  return `<tr><td><input data-f="name" value="${esc(r.name||'')}" placeholder="Bezeichnung"></td><td><input type="date" data-f="start" value="${r.start||''}"></td><td><input type="date" data-f="ende" value="${r.ende||''}"></td>${del}</tr>`;
+}
+function openConfig(){
+  const c=S.config;
+  $('#cName').value=c.name;
+  $('#cFer').innerHTML=c.ferien.map(r=>rowHTML('cFer',r)).join('');
+  $('#cSt').innerHTML=c.sondertage.map(r=>rowHTML('cSt',r)).join('');
+  $('#dlgConfig').showModal();
+}
+function readRows(id){ return [...document.querySelectorAll('#'+id+' tr')].map(tr=>{ const o={}; tr.querySelectorAll('[data-f]').forEach(i=>o[i.dataset.f]=i.value); return o; }).filter(o=>(o.name||'').trim()||o.start||o.ende||o.datum); }
+function readConfigObj(){ return {typ:'konfiguration',version:'1.0',name:$('#cName').value.trim(),jahr:null,ferien:readRows('cFer'),sondertage:readRows('cSt')}; }
+
+/* ===================== UI-Helfer ===================== */
+let toastT;
+function toast(msg,err=false){ const t=$('#toast'); t.textContent=msg; t.className='show'+(err?' err':''); clearTimeout(toastT); toastT=setTimeout(()=>t.className='',2600); }
+function showMsg(title,html){ $('#mTitle').textContent=title; $('#mBody').innerHTML=html; $('#dlgMsg').showModal(); }
+function clearSel(){ document.querySelectorAll('.day.sel').forEach(c=>c.classList.remove('sel')); }
+
+
+/* ===================== Microsoft-Konto / OneDrive-Sync ===================== */
+let msalApp=null, msAccount=null, cloudETag=null, cloudTimer=null, cloudState='', cloudText='Nicht mit OneDrive verbunden';
+const GRAPH_SCOPES=['Files.ReadWrite.AppFolder','User.Read'];
+const CLOUD_FILE='urlaubsplaner-private.json';
+function setCloud(state,text){ cloudState=state||''; cloudText=text; try{renderStatus();}catch(e){} }
+function initIdentity(){
+  if(!window.PRIVATE_PWA_CONFIG || !PRIVATE_PWA_CONFIG.clientId || PRIVATE_PWA_CONFIG.clientId.includes('HIER_')){ setCloud('err','Einrichtung erforderlich: Client-ID in config.js eintragen'); return; }
+  msalApp=new msal.PublicClientApplication({auth:{clientId:PRIVATE_PWA_CONFIG.clientId,authority:'https://login.microsoftonline.com/consumers',redirectUri:location.origin+location.pathname},cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false}});
+  msalApp.handleRedirectPromise().then(r=>{ msAccount=(r&&r.account)||msalApp.getAllAccounts()[0]||null; updateAuthUI(); if(msAccount) syncFromCloud(true); }).catch(e=>setCloud('err','Anmeldung fehlgeschlagen: '+e.message));
+}
+function updateAuthUI(){ const on=!!msAccount; $('#btnSignIn').hidden=on; $('#btnSync').hidden=!on; $('#btnSignOut').hidden=!on; if(on)setCloud('ok','Angemeldet: '+(msAccount.name||msAccount.username)); }
+async function signIn(){ try{ const r=await msalApp.loginPopup({scopes:GRAPH_SCOPES,prompt:'select_account'}); msAccount=r.account; updateAuthUI(); await syncFromCloud(true); }catch(e){ if(e.errorCode!=='user_cancelled') setCloud('err','Anmeldung fehlgeschlagen'); } }
+async function token(){ try{return (await msalApp.acquireTokenSilent({account:msAccount,scopes:GRAPH_SCOPES})).accessToken;}catch(e){return (await msalApp.acquireTokenPopup({account:msAccount,scopes:GRAPH_SCOPES})).accessToken;} }
+async function graph(path,opt={}){ const t=await token(); const h=new Headers(opt.headers||{}); h.set('Authorization','Bearer '+t); const r=await fetch('https://graph.microsoft.com/v1.0'+path,{...opt,headers:h}); if(!r.ok){const x=await r.text();throw new Error(r.status+' '+x);} return r; }
+function cloudPayload(){ return {schema:'urlaubsplaner-private-v2',updatedAt:new Date().toISOString(),state:S}; }
+async function syncFromCloud(initial=false){
+ if(!msAccount)return; setCloud('busy','OneDrive wird synchronisiert ...');
+ try{
+   const r=await graph('/me/drive/special/approot:/'+CLOUD_FILE+':/content');
+   cloudETag=r.headers.get('etag'); const d=await r.json();
+   const localAt=localStorage.getItem(STORE+'.updatedAt')||'';
+   if(d&&d.state&&(!localAt||d.updatedAt>localAt||initial)){ S={config:normConfig(d.state.config),personal:normPersonal(d.state.personal),plan:d.state.plan||{},demo:!!d.state.demo}; localStorage.setItem(STORE,JSON.stringify(S)); localStorage.setItem(STORE+'.updatedAt',d.updatedAt||''); renderAll(); }
+   else await saveToCloud();
+   setCloud('ok','OneDrive aktuell · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}));
+ }catch(e){ if(String(e.message).startsWith('404')) await saveToCloud(); else {setCloud('err','Sync-Fehler · lokal weiter nutzbar'); console.warn(e);} }
+}
+async function saveToCloud(){
+ if(!msAccount)return; setCloud('busy','Änderungen werden gespeichert ...');
+ try{ const body=JSON.stringify(cloudPayload()); const headers={'Content-Type':'application/json'}; if(cloudETag) headers['If-Match']=cloudETag; let r;
+   try{r=await graph('/me/drive/special/approot:/'+CLOUD_FILE+':/content',{method:'PUT',headers,body});}
+   catch(e){ if(String(e.message).startsWith('412')){ await syncFromCloud(true); return; } throw e; }
+   const meta=await r.json(); cloudETag=meta.eTag||null; localStorage.setItem(STORE+'.updatedAt',new Date().toISOString()); setCloud('ok','In OneDrive gespeichert');
+ }catch(e){setCloud('err','Cloud-Speicherung fehlgeschlagen · lokal gesichert');console.warn(e);}
+}
+function queueCloudSave(){ localStorage.setItem(STORE+'.updatedAt',new Date().toISOString()); clearTimeout(cloudTimer); if(msAccount) cloudTimer=setTimeout(saveToCloud,900); }
+async function signOut(){ if(!msalApp||!msAccount)return; await msalApp.logoutPopup({account:msAccount,postLogoutRedirectUri:location.origin+location.pathname}); msAccount=null; updateAuthUI(); setCloud('','Nicht mit OneDrive verbunden'); }
+if('serviceWorker' in navigator && location.protocol!=='file:') addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.warn));
+
+/* ===================== Events ===================== */
+let selA=null, selB=null, dragging=false;
+function paintSel(){ const lo=selA<selB?selA:selB, hi=selA<selB?selB:selA; document.querySelectorAll('#calendar .day[data-d]').forEach(c=>{ const d=c.dataset.d; c.classList.toggle('sel',d>=lo&&d<=hi); }); }
+function bind(){
+  const cal=$('#calendar');
+  cal.addEventListener('mousedown',e=>{ const c=e.target.closest('.day[data-d]'); if(!c||c.closest('.preview')||e.button!==0) return; e.preventDefault(); dragging=true; selA=selB=c.dataset.d; paintSel(); });
+  cal.addEventListener('mouseover',e=>{ if(!dragging) return; const c=e.target.closest('.day[data-d]'); if(!c||c.closest('.preview')) return; if(c.dataset.d!==selB){ selB=c.dataset.d; paintSel(); } });
+  document.addEventListener('mouseup',()=>{ if(!dragging) return; dragging=false; openEntry(selA,selB); });
+
+  document.querySelectorAll('dialog').forEach(d=>{ d.addEventListener('click',e=>{ if(e.target.closest('[data-close]')) d.close(); }); d.addEventListener('close',clearSel); });
+
+  ['#eStart','#eEnd','#eTyp','#eUmf','#eStd','#eBez'].forEach(s=>$(s).addEventListener('input',updEntry));
+  $('#fEntry').addEventListener('submit',e=>{
+    e.preventDefault(); const r=readEntry(); if(!r.a||!r.b) return;
+    lastTyp=r.typ; applyToPlan(S.plan,r); save(); $('#dlgEntry').close(); renderAll();
+    const yy=+r.a.slice(0,4), t=totalsFor(S.plan,yy), rest=availOf(r.typ,yy)-usedOf(t,r.typ);
+    toast(rest<0?`Achtung: Kontingent ${r.typ} ${yy} um ${fmtN(-rest)} überschritten`:`${r.typ} eingetragen – Rest ${fmtN(rest)} ${isHourType(r.typ)?'Std.':'Tage'}`, rest<0);
+  });
+  $('#ePrev').addEventListener('click',e=>{ if(e.target.id==='eToTV'){ $('#eTyp').value='TV'; updEntry(); } });
+  $('#eDel').addEventListener('click',()=>{ const r=readEntry(); applyToPlan(S.plan,{...r,typ:'DEL'}); save(); $('#dlgEntry').close(); renderAll(); toast('Einträge entfernt'); });
+
+  $('#btnRange').addEventListener('click',()=>{ const y=year(); const today=iso(new Date()); const d=today.slice(0,4)==String(y)?today:`${y}-01-01`; openEntry(d,d); });
+  $('#btnImport').addEventListener('click',()=>$('#fileInput').click());
+  $('#fileInput').addEventListener('change',e=>{ const f=[...e.target.files]; e.target.value=''; if(f.length) handleFiles(f); });
+  $('#btnPrint').addEventListener('click',()=>window.print());
+  $('#btnSignIn').addEventListener('click',signIn);
+  $('#btnSync').addEventListener('click',()=>syncFromCloud(false));
+  $('#btnSignOut').addEventListener('click',signOut);
+  $('#yPrev').addEventListener('click',()=>{ P().jahr--; save(); renderAll(); syncSchoolHolidays(); });
+  $('#yNext').addEventListener('click',()=>{ P().jahr++; save(); renderAll(); syncSchoolHolidays(); });
+
+  $('#btnBackup').addEventListener('click',()=>{
+    const y=year(), n=slug(S.personal.person.name);
+    download({typ:'gesamtsicherung',version:'1.0',exportiertAm:new Date().toISOString(),konfiguration:S.config,persoenlich:S.personal,planung:exportPlanObj()},`Urlaubsplaner_${y}_${n}.json`);
+    toast('Gesamtsicherung gespeichert');
+  });
+
+  $('#btnSettings').addEventListener('click',openSettings);
+  $('#sJahr').addEventListener('change',()=>fillKont(parseInt($('#sJahr').value)));
+  $('#sLand').addEventListener('change',()=>renderRegional($('#sLand').value,P().regionaleFeiertage));
+  $('#fSettings').addEventListener('submit',e=>{
+    e.preventDefault(); const errs=[], np=normPersonal(readSettingsObj(),errs);
+    if(errs.length){ showMsg('Bitte prüfen',`<ul class="msglist">${errs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`); return; }
+    S.personal=np; S.demo=false; save(); $('#dlgSettings').close(); renderAll(); syncSchoolHolidays(false); toast('Einstellungen gespeichert');
+  });
+  $('#sColReset').addEventListener('click',()=>renderColorInputs(COLOR_DEFAULTS));
+  $('#sColors').addEventListener('input',e=>{ const i=e.target.closest('[data-col]'); if(i) document.documentElement.style.setProperty('--'+i.dataset.col,i.value); });
+  $('#dlgSettings').addEventListener('close',applyColors);
+  $('#sReset').addEventListener('click',()=>{
+    const y=year(); if(!confirm(`Alle geplanten Einträge für ${y} löschen?`)) return;
+    for(const k of Object.keys(S.plan)) if(k.slice(0,4)===String(y)) delete S.plan[k];
+    save(); $('#dlgSettings').close(); renderAll(); toast('Planung geleert');
+  });
+
+  $('#btnConfig').addEventListener('click',openConfig);
+  $('#fConfig').addEventListener('click',e=>{
+    const del=e.target.closest('[data-delrow]'); if(del){ del.closest('tr').remove(); return; }
+    const add=e.target.closest('[data-add]'); if(add){ $('#'+add.dataset.add).insertAdjacentHTML('beforeend',rowHTML(add.dataset.add)); }
+  });
+  $('#fConfig').addEventListener('submit',e=>{
+    e.preventDefault(); const errs=[], nc=normConfig(readConfigObj(),errs);
+    if(errs.length){ showMsg('Bitte prüfen',`<ul class="msglist">${errs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`); return; }
+    S.config=nc; S.demo=false; save(); $('#dlgConfig').close(); renderAll(); toast('Konfiguration gespeichert');
+  });
+
+  $('#suggestions').addEventListener('click',e=>{
+    const b=e.target.closest('[data-sug]'); if(!b) return;
+    const s=SUGS[+b.dataset.sug], typ=$('#sugType').value;
+    const sim=totalsFor(s.days.reduce((p,k)=>applyToPlan(p,{a:k,b:k,typ,umfang:1,stunden:0,bez:'Brückentag'}),{...S.plan}),+s.days[0].slice(0,4));
+    const rest=availOf(typ,+s.days[0].slice(0,4))-usedOf(sim,typ);
+    if(rest<0 && !confirm(`Das Kontingent ${typ} wird damit um ${fmtN(-rest)} Tage überschritten. Trotzdem übernehmen?`)) return;
+    s.days.forEach(k=>applyToPlan(S.plan,{a:k,b:k,typ,umfang:1,stunden:0,bez:'Brückentag'}));
+    save(); renderAll(); toast(`Brückentag(e) als ${typ} übernommen`);
+  });
+}
+
+loadState(); bind(); renderAll(); initIdentity(); syncSchoolHolidays();
+</script>
+</body>
+</html>
